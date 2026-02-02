@@ -57,9 +57,9 @@ let cache: JobCache | null = null;
 // --- Private Helpers ---
 
 async function getSheetUrl(): Promise<string> {
-    const url = import.meta.env.GOOGLE_SHEET_URL;
+    const url = import.meta.env.GOOGLE_JOBS_SHEET_URL;
     if (!url) {
-        throw new Error('GOOGLE_SHEET_URL environment variable is not set');
+        throw new Error('GOOGLE_JOBS_SHEET_URL environment variable is not set');
     }
     return url;
 }

@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
-import { MapPin, Briefcase, Building2, Monitor, Clock, ChevronLeft, ExternalLink } from 'lucide-astro';
+import { MapPin, Briefcase, Building2, Monitor, Clock, ChevronLeft, ExternalLink, Users } from 'lucide-astro';
 import { getJob } from '../../lib/jobs';
 import { marked } from 'marked';
 
@@ -47,12 +47,12 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
           <div>
             <h1 class="text-3xl md:text-5xl font-['Plus_Jakarta_Sans'] font-extrabold text-foreground tracking-tight leading-tight">{title}</h1>
             <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground mt-4">
-              <IconText icon="lucide:building-2" text={company} href={companyWebsite} target="_blank" rel="noopener noreferrer" />
-              <IconText icon="lucide:briefcase" text={job.jobType} />
-              <IconText icon="lucide:map-pin" text={job.location} />
-              <IconText icon="lucide:monitor" text={job.jobMode} />
-              <IconText icon="lucide:clock" text={`Posted ${new Date(job.postedOn).toLocaleDateString()}`} />
-              <IconText icon="lucide:users" text={`${job.openings} Opening${job.openings !== '1' ? 's' : ''}`} />
+              <IconText icon={Building2} text={company} href={companyWebsite} target="_blank" rel="noopener noreferrer" />
+              <IconText icon={Briefcase} text={job.jobType} />
+              <IconText icon={MapPin} text={job.location} />
+              <IconText icon={Monitor} text={job.jobMode} />
+              <IconText icon={Clock} text={`Posted ${new Date(job.postedOn).toLocaleDateString()}`} />
+              <IconText icon={Users} text={`${job.openings} Opening${job.openings !== '1' ? 's' : ''}`} />
             </div>
           </div>
 

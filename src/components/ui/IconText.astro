@@ -1,12 +1,19 @@
 ---
 interface Props {
+  icon?: any;
+  text?: string;
   class?: string;
+  href?: string;
+  target?: string;
+  rel?: string;
 }
 
-const { class: className } = Astro.props;
+const { icon: Icon, text, class: className, href, ...props } = Astro.props;
+const Component = href ? 'a' : 'span';
 ---
 
-<span class:list={['flex items-center gap-1.5', className]}>
+<Component href={href} class:list={['flex items-center gap-1.5', className, href && 'hover:text-primary transition-colors']} {...props}>
+  {Icon && <Icon class="size-4" />}
   <slot name="icon" />
-  <slot />
-</span>
+  <span class={href ? 'hover:underline' : ''}>{text}<slot /></span>
+</Component>

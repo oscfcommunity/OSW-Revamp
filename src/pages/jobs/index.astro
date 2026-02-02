@@ -1,0 +1,39 @@
+---
+// Homepage is now Server-Side Rendered for real-time updates
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import JobCard from '../../components/JobCard.astro';
+import { getJobs } from '../../lib/jobs';
+
+const allJobs = await getJobs();
+const sortedJobs = allJobs.sort((a, b) => {
+  if (a.featured && !b.featured) return -1;
+  if (!a.featured && b.featured) return 1;
+  
+  // Safely handle date comparison
+  const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
+  const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
+
+  return timeB - timeA;
+});
+---
+
+<Layout title="TechJobs | Find Your Next Role">
+  <div class="space-y-12">
+    <section class="text-center py-12 space-y-4">
+      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+        Find Your Next <span class="text-primary">Tech Opportunity</span>
+      </h1>
+      <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+        Discover the best remote and onsite roles in software engineering, design, and product.
+      </p>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {sortedJobs.map((job) => (
+        <JobCard job={job} />
+      ))}
+    </section>
+  </div>
+</Layout>

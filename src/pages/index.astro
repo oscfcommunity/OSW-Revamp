@@ -1,39 +1,94 @@
 ---
-// Homepage is now Server-Side Rendered for real-time updates
+// SSR for fresh data
 export const prerender = false;
 
 import Layout from '../layouts/Layout.astro';
+import Button from '../components/ui/Button.astro';
 import JobCard from '../components/JobCard.astro';
+import EventCard from '../components/EventCard.astro';
 import { getJobs } from '../lib/jobs';
+import { events } from '../data/events';
 
+// Fetch Data
 const allJobs = await getJobs();
-const sortedJobs = allJobs.sort((a, b) => {
-  if (a.featured && !b.featured) return -1;
-  if (!a.featured && b.featured) return 1;
-  
-  // Safely handle date comparison
-  const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
-  const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
+const recentJobs = allJobs
+    .filter(j => !j.featured) // Maybe feature featured ones, or just recent? Let's show recent.
+    .sort((a, b) => new Date(b.postedOn).getTime() - new Date(a.postedOn).getTime())
+    .slice(0, 3);
 
-  return timeB - timeA;
-});
+const upcomingEvents = events
+    .filter(e => new Date(e.endDate) >= new Date())
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+    .slice(0, 3);
 ---
 
-<Layout title="TechJobs | Find Your Next Role">
-  <div class="space-y-12">
-    <section class="text-center py-12 space-y-4">
-      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-        Find Your Next <span class="text-primary">Tech Opportunity</span>
+<Layout title="Open Source Weekend | Connect, Share, Thrive">
+  <!-- Hero Section -->
+  <section class="py-20 md:py-32 text-center space-y-6 relative overflow-hidden">
+    <!-- Background Gradient Blob (Optional) -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 blur-[100px] rounded-full -z-10 pointer-events-none"></div>
+
+    <div class="space-y-4 max-w-4xl mx-auto px-4">
+      <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground font-['Outfit']">
+        A <span class="text-primary">Community-Driven</span> Initiative
       </h1>
-      <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
-        Discover the best remote and onsite roles in software engineering, design, and product.
+      <p class="text-xl md:text-2xl text-muted-foreground mx-auto font-light leading-relaxed">
+        Empowering developers through events, workshops, and celebrations of open source technology.
       </p>
+    </div>
+    <div class="flex flex-wrap justify-center gap-4 pt-6">
+      <Button href="/events" size="lg" class="rounded-full px-8 text-base shadow-lg shadow-primary/20">
+        Join Upcoming Events
+      </Button>
+      <Button href="/jobs" variant="outline" size="lg" class="rounded-full px-8 text-base">
+        Browse Job Board
+      </Button>
+    </div>
+  </section>
+
+  <!-- Content Sections -->
+  <div class="space-y-20 pb-20">
+    
+    <!-- Events Preview -->
+    <section class="space-y-8">
+      <div class="flex items-center justify-between px-2">
+        <h2 class="text-3xl font-bold font-['Outfit'] flex items-center gap-2">
+          📅 Upcoming Events
+        </h2>
+        <Button href="/events" variant="ghost" class="group">
+          View All <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </Button>
+      </div>
+      
+      {upcomingEvents.length > 0 ? (
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {upcomingEvents.map(event => (
+              <EventCard event={event} />
+          ))}
+        </div>
+      ) : (
+        <div class="p-12 text-center border border-dashed border-border rounded-xl bg-muted/30">
+            <p class="text-muted-foreground">No upcoming events right now. Check back soon!</p>
+        </div>
+      )}
     </section>
 
-    <section class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {sortedJobs.map((job) => (
-        <JobCard job={job} />
-      ))}
+    <!-- Jobs Preview -->
+    <section class="space-y-8">
+      <div class="flex items-center justify-between px-2">
+        <h2 class="text-3xl font-bold font-['Outfit'] flex items-center gap-2">
+          🚀 Latest Opportunities
+        </h2>
+        <Button href="/jobs" variant="ghost" class="group">
+          View All <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </Button>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {recentJobs.map(job => (
+          <JobCard job={job} />
+        ))}
+      </div>
     </section>
   </div>
 </Layout>

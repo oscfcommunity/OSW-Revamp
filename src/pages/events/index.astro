@@ -1,0 +1,55 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import EventCard from '../../components/EventCard.astro';
+import { events } from '../../data/events';
+
+// Separate events based on date
+const now = new Date();
+const upcomingEvents = events.filter(e => new Date(e.endDate) >= now).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+const pastEvents = events.filter(e => new Date(e.endDate) < now).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+---
+
+<Layout title="Events - Open Source Weekend">
+  <div class="space-y-16">
+    <!-- Header -->
+    <header class="text-center space-y-4 py-10">
+      <h1 class="text-4xl font-extrabold tracking-tight font-['Outfit']">Community <span class="text-primary">Events</span></h1>
+      <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+        Join our workshops, meetups, and hackathons to learn, build, and connect.
+      </p>
+    </header>
+
+    <!-- Upcoming Events -->
+    <section class="space-y-8">
+      <div class="flex items-center gap-4">
+        <h2 class="text-2xl font-bold font-['Outfit']">Upcoming Events</h2>
+        <div class="h-px bg-border flex-1"></div>
+      </div>
+
+      {upcomingEvents.length > 0 ? (
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {upcomingEvents.map(event => (
+            <EventCard event={event} />
+          ))}
+        </div>
+      ) : (
+        <p class="text-center text-muted-foreground py-10">No upcoming events scheduled at the moment.</p>
+      )}
+    </section>
+
+    <!-- Past Events -->
+    {pastEvents.length > 0 && (
+      <section class="space-y-8 opacity-75">
+        <div class="flex items-center gap-4">
+          <h2 class="text-2xl font-bold font-['Outfit']">Past Events</h2>
+          <div class="h-px bg-border flex-1"></div>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {pastEvents.map(event => (
+            <EventCard event={event} />
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</Layout>

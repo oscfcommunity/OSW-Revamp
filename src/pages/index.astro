@@ -11,7 +11,11 @@ const sortedJobs = allJobs.sort((a, b) => {
   if (a.featured && !b.featured) return -1;
   if (!a.featured && b.featured) return 1;
   
-  return new Date(b.postedOn).getTime() - new Date(a.postedOn).getTime();
+  // Safely handle date comparison
+  const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
+  const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
+
+  return timeB - timeA;
 });
 ---
 

@@ -22,6 +22,16 @@ if (!job) {
 const { title, company, jobType, jobMode, location, postedOn, skills, experience, companyWebsite, applyLink, aboutCompany } = job;
 const contentHtml = await marked.parse(job.description || '');
 
+// Safely format the posted date
+let formattedPostedDate = 'Recently';
+try {
+  if (!isNaN(postedOn.getTime())) {
+    formattedPostedDate = postedOn.toLocaleDateString();
+  }
+} catch (error) {
+  console.error('Error formatting date:', error);
+}
+
 const description = `Apply for ${title} at ${company}. ${experience} experience required.`;
 ---
 
@@ -55,7 +65,7 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
               <Briefcase class="size-4" /> {jobType}
             </Badge>
             <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
-              <Clock class="size-4" /> Posted {new Date(postedOn).toLocaleDateString()}
+              <Clock class="size-4" /> Posted {formattedPostedDate}
             </Badge>
           </div>
         </div>

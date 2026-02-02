@@ -95,6 +95,26 @@ function parseCSV(csvText: string): SheetJob[] {
 }
 
 /**
+ * Safely parses a date string into a Date object.
+ * Returns current date if parsing fails.
+ */
+function parseDate(dateString: string): Date {
+    if (!dateString || dateString.trim() === '') {
+        return new Date();
+    }
+
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        console.warn(`Invalid date format: "${dateString}". Using current date.`);
+        return new Date();
+    }
+
+    return date;
+}
+
+/**
  * Maps a raw CSV row to our clean Job domain object.
  */
 function mapRowToJob(row: SheetJob): Job | null {
@@ -115,7 +135,7 @@ function mapRowToJob(row: SheetJob): Job | null {
         location: row.location,
         companyWebsite: row.companyWebsite,
         applyLink: row.applyLink,
-        postedOn: new Date(row.postedOn),
+        postedOn: parseDate(row.postedOn),
         // Prioritize 'Job Description' col, fallback to 'description', then empty
         description: row["Job Description"] || row.description || '',
         aboutCompany: row["About Company"] || ''

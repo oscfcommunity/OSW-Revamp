@@ -10,11 +10,19 @@ interface Props {
 const { job } = Astro.props;
 const { title, company, jobType, jobMode, location, postedOn, jobSlug, featured } = job;
 
-const formattedDate = new Intl.DateTimeFormat('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-}).format(new Date(postedOn));
+// Safely format date with fallback
+let formattedDate = 'Recently';
+try {
+  if (!isNaN(postedOn.getTime())) {
+    formattedDate = new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(postedOn);
+  }
+} catch (error) {
+  console.error('Error formatting date:', error);
+}
 ---
 
 <a href={`/jobs/${jobSlug}`} class={`group relative block p-8 pb-10 bg-card border rounded-2xl transition-all duration-300 ${featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'}`}>

@@ -10,16 +10,10 @@ import { getJobs } from '../lib/jobs';
 import { events } from '../data/events';
 
 // Fetch Data
-const allJobs = await getJobs();
-const recentJobs = allJobs
-    .filter(j => !j.featured) // Maybe feature featured ones, or just recent? Let's show recent.
-    .sort((a, b) => new Date(b.postedOn).getTime() - new Date(a.postedOn).getTime())
-    .slice(0, 3);
-
 const upcomingEvents = events
     .filter(e => new Date(e.endDate) >= new Date())
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-    .slice(0, 3);
+    .slice(0, 2);
 ---
 
 <Layout title="Open Source Weekend | Connect, Share, Thrive">
@@ -47,8 +41,45 @@ const upcomingEvents = events
   </section>
 
   <!-- Content Sections -->
-  <div class="space-y-20 pb-20">
+  <div class="space-y-20 pb-20 max-w-6xl mx-auto px-4">
     
+    <!-- About Community -->
+    <section class="grid md:grid-cols-2 gap-12 items-center">
+      <div class="space-y-6">
+        <h2 class="text-3xl font-bold font-['Outfit']">
+          What is <span class="text-primary">OSW</span>?
+        </h2>
+        <div class="space-y-4 text-muted-foreground text-lg leading-relaxed">
+          <p>
+            Open Source Weekend is a volunteer-run community dedicated to connecting developers, designers, and tech enthusiasts. We believe in the power of code to bring people together.
+          </p>
+          <p>
+            Whether you're a seasoned maintainer or writing your first "Hello World", there's a place for you here. We organize hackathons, devfests, and workshops to foster learning and collaboration.
+          </p>
+        </div>
+      </div>
+      <div class="bg-muted/30 rounded-2xl p-8 border border-border">
+         <div class="grid grid-cols-2 gap-6">
+            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
+                <span class="block text-4xl font-bold text-primary mb-2">50+</span>
+                <span class="text-sm text-muted-foreground">Events Hosted</span>
+            </div>
+            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
+                <span class="block text-4xl font-bold text-secondary mb-2">2k+</span>
+                <span class="text-sm text-muted-foreground">Community Members</span>
+            </div>
+            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
+                <span class="block text-4xl font-bold text-primary mb-2">10+</span>
+                <span class="text-sm text-muted-foreground">Cities Reached</span>
+            </div>
+            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
+                <span class="block text-4xl font-bold text-secondary mb-2">∞</span>
+                <span class="text-sm text-muted-foreground">Lines of Code</span>
+            </div>
+         </div>
+      </div>
+    </section>
+
     <!-- Events Preview -->
     <section class="space-y-8">
       <div class="flex items-center justify-between px-2">
@@ -61,7 +92,7 @@ const upcomingEvents = events
       </div>
       
       {upcomingEvents.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-2">
           {upcomingEvents.map(event => (
               <EventCard event={event} />
           ))}
@@ -71,24 +102,6 @@ const upcomingEvents = events
             <p class="text-muted-foreground">No upcoming events right now. Check back soon!</p>
         </div>
       )}
-    </section>
-
-    <!-- Jobs Preview -->
-    <section class="space-y-8">
-      <div class="flex items-center justify-between px-2">
-        <h2 class="text-3xl font-bold font-['Outfit'] flex items-center gap-2">
-          🚀 Latest Opportunities
-        </h2>
-        <Button href="/jobs" variant="ghost" class="group">
-          View All <span class="group-hover:translate-x-1 transition-transform">→</span>
-        </Button>
-      </div>
-
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {recentJobs.map(job => (
-          <JobCard job={job} />
-        ))}
-      </div>
     </section>
   </div>
 </Layout>

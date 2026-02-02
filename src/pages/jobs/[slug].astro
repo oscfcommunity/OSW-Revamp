@@ -46,28 +46,16 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
         <div class="space-y-6 flex-1">
           <div>
             <h1 class="text-3xl md:text-5xl font-['Plus_Jakarta_Sans'] font-extrabold text-foreground tracking-tight leading-tight">{title}</h1>
-            <div class="flex items-center gap-3 mt-4 text-xl text-muted-foreground font-medium">
-              <Building2 class="size-5 text-primary" />
-              <a href={companyWebsite} target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-primary transition-colors">
-                {company}
-              </a>
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground mt-4">
+              <IconText icon="lucide:building-2" text={company} href={companyWebsite} target="_blank" rel="noopener noreferrer" />
+              <IconText icon="lucide:briefcase" text={job.jobType} />
+              <IconText icon="lucide:map-pin" text={job.location} />
+              <IconText icon="lucide:monitor" text={job.jobMode} />
+              <IconText icon="lucide:clock" text={`Posted ${new Date(job.postedOn).toLocaleDateString()}`} />
+              <IconText icon="lucide:users" text={`${job.openings} Opening${job.openings !== '1' ? 's' : ''}`} />
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-3">
-            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
-              <MapPin class="size-4" /> {location}
-            </Badge>
-            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
-              <Monitor class="size-4" /> {jobMode}
-            </Badge>
-            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
-              <Briefcase class="size-4" /> {jobType}
-            </Badge>
-            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
-              <Clock class="size-4" /> Posted {formattedPostedDate}
-            </Badge>
-          </div>
         </div>
 
         <div class="flex flex-col gap-4 min-w-[200px]">
@@ -81,6 +69,13 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
         </div>
       </div>
       
+      {job.status === 'Closed' && (
+        <div class="mt-8 bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ban w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+          This job is currently closed and no longer accepting applications.
+        </div>
+      )}
+
       <div class="mt-10 border-t border-border pt-8">
         <h3 class="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Required Skills</h3>
         <div class="flex flex-wrap gap-2.5">

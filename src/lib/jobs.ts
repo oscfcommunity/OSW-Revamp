@@ -17,6 +17,8 @@ export interface Job {
     postedOn: Date;
     description: string;
     aboutCompany: string;
+    status: 'Open' | 'Closed';
+    openings: string;
 }
 
 interface SheetJob {
@@ -35,6 +37,8 @@ interface SheetJob {
     description: string;
     "About Company": string;
     "Job Description": string;
+    status: string;
+    openings: string;
 }
 
 // --- Constants & Configuration ---
@@ -138,7 +142,9 @@ function mapRowToJob(row: SheetJob): Job | null {
         postedOn: parseDate(row.postedOn),
         // Prioritize 'Job Description' col, fallback to 'description', then empty
         description: row["Job Description"] || row.description || '',
-        aboutCompany: row["About Company"] || ''
+        aboutCompany: row["About Company"] || '',
+        status: row.status?.trim() === 'Closed' ? 'Closed' : 'Open',
+        openings: row.openings || '1'
     };
 }
 

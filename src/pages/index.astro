@@ -10,6 +10,11 @@ import { getJobs } from '../lib/jobs';
 import { getEvents } from '../lib/events';
 
 // Fetch Data
+const allJobs = await getJobs();
+const recentJobs = allJobs
+    .filter(j => !j.featured && j.status !== 'Closed')
+    .sort((a, b) => new Date(b.postedOn).getTime() - new Date(a.postedOn).getTime())
+    .slice(0, 3);
 const upcomingEvents = (await getEvents())
     .filter(e => new Date(e.endDate) >= new Date())
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())

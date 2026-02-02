@@ -22,7 +22,7 @@ const { title, description = "Find your next tech job." } = Astro.props;
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -38,10 +38,10 @@ const { title, description = "Find your next tech job." } = Astro.props;
 	</head>
 	<body class="min-h-screen bg-background text-foreground transition-colors duration-300 antialiased font-['Inter',sans-serif]">
     <header class="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-3 group">
-          <img src="/logo.png" alt="Open Source Weekend" class="h-10 w-auto group-hover:scale-105 transition-transform" />
-          <span class="text-xl font-bold tracking-tight text-foreground hidden sm:block">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-4 group">
+          <img src="/logo.png" alt="Open Source Weekend" class="h-20 w-auto group-hover:scale-105 transition-transform drop-shadow-sm dark:bg-white dark:rounded-lg dark:p-1" />
+          <span class="text-3xl font-extrabold tracking-tight text-foreground hidden sm:block font-['Outfit'] group-hover:text-primary transition-colors">
             Open Source Weekend
           </span>
         </a>

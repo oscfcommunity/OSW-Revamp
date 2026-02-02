@@ -39,7 +39,6 @@ interface SheetJob {
 
 // --- Constants & Configuration ---
 
-const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2mSHZRiGUWzVlnuHWSpNDdUPDSJH94zMwTPcX0ude9nylJ0-GIcd3zlEpgeGKu0eCyEXLw1nXm0HH/pub?gid=0&single=true&output=csv";
 const CACHE_TTL_MS = 60 * 1000; // 60 seconds
 
 // --- State (Singleton Cache) ---
@@ -53,13 +52,22 @@ let cache: JobCache | null = null;
 
 // --- Private Helpers ---
 
+async function getSheetUrl(): Promise<string> {
+    const url = import.meta.env.GOOGLE_SHEET_URL;
+    if (!url) {
+        throw new Error('GOOGLE_SHEET_URL environment variable is not set');
+    }
+    return url;
+}
+
 /**
  * Fetches raw CSV text from the Google Sheet.
  * Adds a timestamp to bypass Google's internal caching if needed, 
  * though our local cache will prevent frequent calls.
  */
 async function fetchRawCSV(): Promise<string> {
-    const fetchUrl = new URL(GOOGLE_SHEET_URL);
+    const url = await getSheetUrl();
+    const fetchUrl = new URL(url);
     fetchUrl.searchParams.set('t', Date.now().toString());
 
     const response = await fetch(fetchUrl.toString());

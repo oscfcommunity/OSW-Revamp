@@ -1,22 +1,26 @@
-# TechJobs Portal
+# Open Source Weekend Community Platform
 
-A modern, server-side rendered (SSR) job board built with **Astro**, **Tailwind CSS**, and **Google Sheets** as the CMS.
+A comprehensive community platform built for **Open Source Weekend**, featuring upcoming events, past meetups, and a dynamic job board. Powered by **Astro**, **Tailwind CSS**, and **Google Sheets** as the CMS.
 
 ## 🚀 Features
 
--   **Real-time Updates**: Jobs are fetched directly from a Google Sheet on every request.
+-   **Community Hub**: central landing page (`/`) showcasing the community mission, upcoming events, and job opportunities.
+-   **Events System**:
+    -   Lists **Upcoming** and **Past** events automatically based on dates.
+    -   Dynamic data fetching from Google Sheets.
+-   **Job Board**:
+    -   Real-time job listings fetched from Google Sheets.
+    -   **Status Indicators**: "Open" or "Closed" status with visual warnings for closed roles.
+    -   **Openings Count**: Displays the number of available positions.
 -   **Server-Side Rendering (SSR)**: Dynamic content with excellent SEO and performance.
--   **Design System**: Built with a custom, reusable component library (Badges, Buttons, etc.) and Tailwind CSS.
--   **Performance**: In-memory server-side caching (60s TTL) to minimize latency while ensuring data freshness.
--   **Search Optimized**: Semantic HTML and fast load times.
+-   **Design System**: Premium, dark-mode ready UI built with Tailwind CSS v4 and `lucide-astro` icons.
 
 ## 🛠️ Tech Stack
 
 -   **Framework**: [Astro](https://astro.build/) (SSR mode)
 -   **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 -   **Deployment**: [Vercel](https://vercel.com/) (Serverless Functions)
--   **Data Source**: Google Sheets (via CSV export)
--   **Icons**: [Lucide Astro](https://lucide.dev/)
+-   **Data Source**: Google Sheets (via CSV export) for both Jobs and Events.
 
 ## ⚡ Getting Started
 
@@ -35,13 +39,17 @@ npm install
 
 ### 2. Configure Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory and add your Google Sheet CSV URLs:
 
 ```bash
-GOOGLE_SHEET_URL=https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?gid=0&single=true&output=csv
+# Jobs Data Source
+GOOGLE_JOBS_SHEET_URL=https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv
+
+# Events Data Source
+GOOGLE_EVENTS_SHEET_URL=https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv
 ```
 
-> **Note**: Your Google Sheet must be "Published to the Web" as a CSV.
+> **Note**: Your Google Sheets must be "Published to the Web" as a CSV.
 
 ### 3. Run Locally
 
@@ -56,17 +64,32 @@ Visit `http://localhost:4321` to see the app.
 ```
 ├── src/
 │   ├── components/
-│   │   ├── ui/          # Reusable design system (Badge, Button, etc.)
-│   │   └── JobCard.astro
-│   ├── layouts/
+│   │   ├── ui/             # Reusable design system (Badge, Button, etc.)
+│   │   ├── EventCard.astro # Event display component
+│   │   └── JobCard.astro   # Job display component
 │   ├── lib/
-│   │   └── jobs.ts      # Data fetching, caching, and parsing logic
+│   │   ├── events.ts       # Events fetching & caching logic
+│   │   └── jobs.ts         # Jobs fetching & caching logic
 │   ├── pages/
-│   │   ├── index.astro  # Homepage (Job Feed)
-│   │   └── jobs/
-│   │       └── [slug].astro # Job Detail Page
-└── astro.config.mjs     # SSR configuration (Vercel adapter)
+│   │   ├── index.astro     # Landing Page
+│   │   ├── events/         # Events Page
+│   │   └── jobs/           # Job Board & Detail Pages
+│   └── layouts/            # Main Layout (Header, Footer)
+└── astro.config.mjs        # SSR configuration (Vercel adapter)
 ```
+
+## 📊 Data Management (Google Sheets)
+
+### Jobs Sheet Headers
+- `title`, `company`, `jobSlug`, `featured` (TRUE/FALSE)
+- `location`, `jobType` (Remote/Onsite), `jobMode` (Full-time/Contract)
+- `status` (Open/Closed), `openings` (Number)
+- `postedOn` (Date), `applyLink`, `description`, `About Company`
+
+### Events Sheet Headers
+- `title`, `startDate` (ISO/Date), `endDate` (ISO/Date)
+- `link` (Registration URL), `location`, `type` (Meetup/Workshop)
+- `description`
 
 ## 🚀 Deployment
 
@@ -74,5 +97,5 @@ The project is configured for **Vercel**.
 
 1.  Push your code to GitHub/GitLab.
 2.  Import the project in Vercel.
-3.  **Crucial**: Add the `GOOGLE_SHEET_URL` environment variable in Vercel Project Settings.
+3.  **Crucial**: Add the `GOOGLE_JOBS_SHEET_URL` and `GOOGLE_EVENTS_SHEET_URL` environment variables in Vercel Project Settings.
 4.  Deploy!

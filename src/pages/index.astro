@@ -7,10 +7,10 @@ import Button from '../components/ui/Button.astro';
 import JobCard from '../components/JobCard.astro';
 import EventCard from '../components/EventCard.astro';
 import { getJobs } from '../lib/jobs';
-import { events } from '../data/events';
+import { getEvents } from '../lib/events';
 
 // Fetch Data
-const upcomingEvents = events
+const upcomingEvents = (await getEvents())
     .filter(e => new Date(e.endDate) >= new Date())
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice(0, 2);

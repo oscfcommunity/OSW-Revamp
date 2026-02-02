@@ -6,6 +6,12 @@ import { MapPin, Briefcase, Building2, Monitor, Clock, ChevronLeft, ExternalLink
 import { getJob } from '../../lib/jobs';
 import { marked } from 'marked';
 
+// Design System
+import Badge from '../../components/ui/Badge.astro';
+import Button from '../../components/ui/Button.astro';
+import SkillTag from '../../components/ui/SkillTag.astro';
+import IconText from '../../components/ui/IconText.astro';
+
 const { slug } = Astro.params;
 const job = await getJob(slug!);
 
@@ -21,9 +27,9 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
 
 <Layout title={`${title} at ${company} | TechJobs`} description={description}>
   <div class="space-y-8 max-w-4xl mx-auto">
-    <a href="/" class="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-4">
+    <Button href="/" variant="ghost" size="sm" class="pl-0 hover:bg-transparent hover:text-primary">
       <ChevronLeft class="size-4 mr-1" /> Back to Jobs
-    </a>
+    </Button>
 
     <div class="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-sm">
       <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
@@ -38,26 +44,27 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-3 text-sm font-medium text-muted-foreground">
-            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+          <div class="flex flex-wrap gap-3">
+            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
               <MapPin class="size-4" /> {location}
-            </span>
-            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+            </Badge>
+            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
               <Monitor class="size-4" /> {jobMode}
-            </span>
-            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+            </Badge>
+            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
               <Briefcase class="size-4" /> {jobType}
-            </span>
-            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+            </Badge>
+            <Badge variant="muted" class="bg-muted px-3 py-1.5 border-border/50 text-base">
               <Clock class="size-4" /> Posted {new Date(postedOn).toLocaleDateString()}
-            </span>
+            </Badge>
           </div>
         </div>
 
         <div class="flex flex-col gap-4 min-w-[200px]">
-          <a href={applyLink} target="_blank" rel="noopener noreferrer" class="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
-            Apply Now <ExternalLink class="size-4 group-hover:translate-x-1 transition-transform" />
-          </a>
+          <Button href={applyLink} target="_blank" rel="noopener noreferrer" size="lg" class="w-full shadow-lg hover:-translate-y-0.5">
+            Apply Now <ExternalLink class="size-4" />
+          </Button>
+          
           <div class="text-center text-sm text-muted-foreground bg-muted/30 py-3 rounded-lg border border-border/30">
             Experience: <span class="font-bold text-foreground block mt-0.5">{experience}</span>
           </div>
@@ -68,9 +75,7 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
         <h3 class="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Required Skills</h3>
         <div class="flex flex-wrap gap-2.5">
           {skills.map((skill: string) => (
-            <span class="px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm border border-primary/20 shadow-sm hover:bg-primary/20 transition-colors cursor-default">
-              {skill}
-            </span>
+            <SkillTag skill={skill} />
           ))}
         </div>
       </div>

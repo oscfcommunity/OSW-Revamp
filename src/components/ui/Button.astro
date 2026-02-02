@@ -1,0 +1,32 @@
+---
+import { type HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'a'> {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  href?: string;
+}
+
+const { variant = 'primary', size = 'md', href, class: className, ...props } = Astro.props;
+
+const variants = {
+  primary: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+  outline: 'border border-border bg-background hover:bg-accent hover:text-accent-foreground',
+  ghost: 'hover:bg-accent hover:text-accent-foreground',
+};
+
+const sizes = {
+  sm: 'h-9 px-3 text-xs',
+  md: 'h-11 px-8 text-sm',
+  lg: 'h-14 px-8 text-base',
+};
+
+const baseStyles = 'inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+
+const Element = href ? 'a' : 'button';
+---
+
+<Element href={href} class:list={[baseStyles, variants[variant], sizes[size], className]} {...props}>
+  <slot />
+</Element>

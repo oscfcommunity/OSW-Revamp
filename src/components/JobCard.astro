@@ -1,8 +1,10 @@
 ---
-import { MapPin, Calendar, Briefcase, Building2, Monitor, ArrowRight, Zap } from 'lucide-astro';
+import { Calendar, Building2, ArrowRight, Zap, MapPin, Monitor, Briefcase } from 'lucide-astro';
+import Badge from './ui/Badge.astro';
+import IconText from './ui/IconText.astro';
 
 interface Props {
-  job: any; // Using any temporarily or import the interface from lib/jobs
+  job: any;
 }
 
 const { job } = Astro.props;
@@ -26,32 +28,32 @@ const formattedDate = new Intl.DateTimeFormat('en-US', {
     <div class="space-y-4">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
-          <p class="text-sm font-bold text-primary flex items-center gap-2">
-            <Building2 class="size-4" /> {company}
-          </p>
+          <IconText class="text-sm font-bold text-primary">
+            <Building2 slot="icon" class="size-4" /> {company}
+          </IconText>
           <h3 class={`font-['Plus_Jakarta_Sans'] font-bold text-foreground group-hover:text-primary transition-colors ${featured ? 'text-2xl' : 'text-xl'}`}>
             {title}
           </h3>
         </div>
       </div>
       
-      <div class="flex flex-wrap gap-3 text-sm font-medium text-muted-foreground">
-        <span class="flex items-center gap-1.5 bg-muted/50 px-2.5 py-0.5 rounded-md">
+      <div class="flex flex-wrap gap-3">
+        <Badge variant="muted">
           <MapPin class="size-3.5" /> {location}
-        </span>
-        <span class="flex items-center gap-1.5 bg-muted/50 px-2.5 py-0.5 rounded-md">
+        </Badge>
+        <Badge variant="muted">
           <Monitor class="size-3.5" /> {jobMode}
-        </span>
-         <span class="flex items-center gap-1.5 bg-muted/50 px-2.5 py-0.5 rounded-md">
+        </Badge>
+         <Badge variant="muted">
           <Briefcase class="size-3.5" /> {jobType}
-        </span>
+        </Badge>
       </div>
     </div>
 
     <div class="pt-6 border-t border-border/50 flex items-center justify-between">
-      <span class="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/80">
-        <Calendar class="size-3.5" /> {formattedDate}
-      </span>
+      <IconText class="text-xs font-medium text-muted-foreground/80">
+        <Calendar slot="icon" class="size-3.5" /> {formattedDate}
+      </IconText>
       <span class="flex items-center gap-1 text-sm font-bold text-foreground group-hover:translate-x-1 transition-transform group-hover:text-primary">
         Apply Now <ArrowRight class="size-4" />
       </span>

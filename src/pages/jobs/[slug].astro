@@ -13,7 +13,7 @@ if (!job) {
   return Astro.redirect('/404');
 }
 
-const { title, company, jobType, jobMode, location, postedOn, skills, experience, companyWebsite, applyLink } = job;
+const { title, company, jobType, jobMode, location, postedOn, skills, experience, companyWebsite, applyLink, aboutCompany } = job;
 const contentHtml = await marked.parse(job.description || '');
 
 const description = `Apply for ${title} at ${company}. ${experience} experience required.`;
@@ -76,6 +76,23 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
       </div>
     </div>
 
-    <article class="prose prose-lg dark:prose-invert max-w-none prose-headings:font-['Plus_Jakarta_Sans'] prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary/80 prose-li:marker:text-primary bg-card p-8 md:p-12 rounded-2xl border border-border shadow-sm" set:html={contentHtml} />
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="md:col-span-2 space-y-8">
+        <article class="prose prose-lg dark:prose-invert max-w-none prose-headings:font-['Plus_Jakarta_Sans'] prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary/80 prose-li:marker:text-primary bg-card p-8 md:p-12 rounded-2xl border border-border shadow-sm" set:html={contentHtml} />
+      </div>
+
+      <div class="md:col-span-1 space-y-6">
+        {aboutCompany && (
+          <div class="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+              <Building2 class="size-5 text-primary" /> About {company}
+            </h3>
+            <p class="text-sm text-muted-foreground leading-relaxed">
+              {aboutCompany}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   </div>
 </Layout>

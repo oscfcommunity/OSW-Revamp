@@ -14,6 +14,7 @@ export interface Job {
     applyLink: string;
     postedOn: Date;
     description: string;
+    aboutCompany: string;
 }
 
 interface SheetJob {
@@ -30,6 +31,8 @@ interface SheetJob {
     applyLink: string;
     postedOn: string;
     description: string;
+    "About Company": string;
+    "Job Description": string;
 }
 
 const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2mSHZRiGUWzVlnuHWSpNDdUPDSJH94zMwTPcX0ude9nylJ0-GIcd3zlEpgeGKu0eCyEXLw1nXm0HH/pub?gid=0&single=true&output=csv";
@@ -48,6 +51,7 @@ export async function getJobs(): Promise<Job[]> {
         const { data, errors } = Papa.parse<SheetJob>(csvText, {
             header: true,
             skipEmptyLines: true,
+            transformHeader: (h) => h.trim()
         });
 
         if (errors.length > 0) {
@@ -69,7 +73,8 @@ export async function getJobs(): Promise<Job[]> {
                 companyWebsite: row.companyWebsite,
                 applyLink: row.applyLink,
                 postedOn: new Date(row.postedOn),
-                description: row.description || ''
+                description: row["Job Description"] || row.description || '',
+                aboutCompany: row["About Company"] || ''
             }));
     } catch (error) {
         console.error('Error fetching jobs:', error);

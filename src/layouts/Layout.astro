@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = "Find your next tech job." } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+	</head>
+	<body class="min-h-screen bg-background text-foreground transition-colors duration-300 antialiased font-['Inter',sans-serif]">
+    <header class="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="/logo.png" alt="Open Source Weekend" class="h-10 w-auto group-hover:scale-105 transition-transform" />
+          <span class="text-xl font-bold tracking-tight text-foreground hidden sm:block">
+            Open Source Weekend
+          </span>
+        </a>
+        <nav class="flex items-center gap-4">
+          <ThemeToggle />
+        </nav>
+      </div>
+    </header>
+		<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<slot />
+		</main>
+    <footer class="border-t border-border mt-auto py-8">
+      <div class="max-w-5xl mx-auto px-4 text-center text-sm text-muted-foreground">
+        &copy; {new Date().getFullYear()} TechJobs. All rights reserved.
+      </div>
+    </footer>
+	</body>
+</html>

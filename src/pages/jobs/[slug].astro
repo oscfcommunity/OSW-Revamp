@@ -1,0 +1,81 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { MapPin, Briefcase, Building2, Monitor, Clock, ChevronLeft, ExternalLink } from 'lucide-astro';
+import { getJob } from '../../lib/jobs';
+import { marked } from 'marked';
+
+const { slug } = Astro.params;
+const job = await getJob(slug!);
+
+if (!job) {
+  return Astro.redirect('/404');
+}
+
+const { title, company, jobType, jobMode, location, postedOn, skills, experience, companyWebsite, applyLink } = job;
+const contentHtml = await marked.parse(job.description || '');
+
+const description = `Apply for ${title} at ${company}. ${experience} experience required.`;
+---
+
+<Layout title={`${title} at ${company} | TechJobs`} description={description}>
+  <div class="space-y-8 max-w-4xl mx-auto">
+    <a href="/" class="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-4">
+      <ChevronLeft class="size-4 mr-1" /> Back to Jobs
+    </a>
+
+    <div class="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+        <div class="space-y-6 flex-1">
+          <div>
+            <h1 class="text-3xl md:text-5xl font-['Plus_Jakarta_Sans'] font-extrabold text-foreground tracking-tight leading-tight">{title}</h1>
+            <div class="flex items-center gap-3 mt-4 text-xl text-muted-foreground font-medium">
+              <Building2 class="size-5 text-primary" />
+              <a href={companyWebsite} target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-primary transition-colors">
+                {company}
+              </a>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 text-sm font-medium text-muted-foreground">
+            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+              <MapPin class="size-4" /> {location}
+            </span>
+            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+              <Monitor class="size-4" /> {jobMode}
+            </span>
+            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+              <Briefcase class="size-4" /> {jobType}
+            </span>
+            <span class="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-lg border border-border/50">
+              <Clock class="size-4" /> Posted {new Date(postedOn).toLocaleDateString()}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-4 min-w-[200px]">
+          <a href={applyLink} target="_blank" rel="noopener noreferrer" class="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+            Apply Now <ExternalLink class="size-4 group-hover:translate-x-1 transition-transform" />
+          </a>
+          <div class="text-center text-sm text-muted-foreground bg-muted/30 py-3 rounded-lg border border-border/30">
+            Experience: <span class="font-bold text-foreground block mt-0.5">{experience}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-10 border-t border-border pt-8">
+        <h3 class="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Required Skills</h3>
+        <div class="flex flex-wrap gap-2.5">
+          {skills.map((skill: string) => (
+            <span class="px-4 py-1.5 rounded-full bg-secondary/10 text-secondary-foreground font-semibold text-sm border border-secondary/20">
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <article class="prose prose-lg dark:prose-invert max-w-none prose-headings:font-['Plus_Jakarta_Sans'] prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary/80 prose-li:marker:text-primary bg-card p-8 md:p-12 rounded-2xl border border-border shadow-sm" set:html={contentHtml} />
+  </div>
+</Layout>

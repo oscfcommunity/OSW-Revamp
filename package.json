@@ -1,0 +1,25 @@
+{
+  "name": "job-portal",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.5.2",
+    "@astrojs/sitemap": "^3.7.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.1.18",
+    "astro": "^5.17.1",
+    "lucide-astro": "^0.556.0",
+    "marked": "^17.0.1",
+    "papaparse": "^5.5.3",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@types/papaparse": "^5.5.2"
+  }
+}

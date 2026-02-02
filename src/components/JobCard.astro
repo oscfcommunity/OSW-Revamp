@@ -1,0 +1,60 @@
+---
+import { MapPin, Calendar, Briefcase, Building2, Monitor, ArrowRight, Zap } from 'lucide-astro';
+
+interface Props {
+  job: any; // Using any temporarily or import the interface from lib/jobs
+}
+
+const { job } = Astro.props;
+const { title, company, jobType, jobMode, location, postedOn, jobSlug, featured } = job;
+
+const formattedDate = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+}).format(new Date(postedOn));
+---
+
+<a href={`/jobs/${jobSlug}`} class={`group relative block p-8 pb-10 bg-card border rounded-2xl transition-all duration-300 ${featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'}`}>
+  {featured && (
+    <div class="absolute -top-3 right-6 bg-secondary text-secondary-foreground text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+      <Zap class="size-3 fill-current" /> Urgent
+    </div>
+  )}
+  
+  <div class="flex flex-col h-full justify-between gap-6">
+    <div class="space-y-4">
+      <div class="flex items-start justify-between">
+        <div class="space-y-1">
+          <p class="text-sm font-bold text-primary flex items-center gap-2">
+            <Building2 class="size-4" /> {company}
+          </p>
+          <h3 class={`font-['Plus_Jakarta_Sans'] font-bold text-foreground group-hover:text-primary transition-colors ${featured ? 'text-2xl' : 'text-xl'}`}>
+            {title}
+          </h3>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap gap-3 text-sm font-medium text-muted-foreground">
+        <span class="flex items-center gap-1.5 bg-muted/50 px-2.5 py-0.5 rounded-md">
+          <MapPin class="size-3.5" /> {location}
+        </span>
+        <span class="flex items-center gap-1.5 bg-muted/50 px-2.5 py-0.5 rounded-md">
+          <Monitor class="size-3.5" /> {jobMode}
+        </span>
+         <span class="flex items-center gap-1.5 bg-muted/50 px-2.5 py-0.5 rounded-md">
+          <Briefcase class="size-3.5" /> {jobType}
+        </span>
+      </div>
+    </div>
+
+    <div class="pt-6 border-t border-border/50 flex items-center justify-between">
+      <span class="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/80">
+        <Calendar class="size-3.5" /> {formattedDate}
+      </span>
+      <span class="flex items-center gap-1 text-sm font-bold text-foreground group-hover:translate-x-1 transition-transform group-hover:text-primary">
+        Apply Now <ArrowRight class="size-4" />
+      </span>
+    </div>
+  </div>
+</a>

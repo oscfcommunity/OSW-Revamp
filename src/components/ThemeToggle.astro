@@ -8,9 +8,26 @@ import { Sun, Moon } from 'lucide-astro';
   aria-label="Toggle Theme"
 >
   <span class="sr-only">Toggle theme</span>
-  <Sun class="size-5 dark:hidden" />
-  <Moon class="size-5 hidden dark:block" />
+  <!-- Sun icon: Hidden by default (Light Mode), Visible in Dark Mode -->
+  <Sun class="size-5 sun-icon hidden" />
+  <!-- Moon icon: Visible by default (Light Mode), Hidden in Dark Mode -->
+  <Moon class="size-5 moon-icon" />
 </button>
+
+<style>
+  /* Action Metaphor: 
+     - Light Mode: Show Moon (Click to go Dark)
+     - Dark Mode: Show Sun (Click to go Light) 
+  */
+  
+  /* In Dark Mode, hide Moon, show Sun */
+  :global(.dark) .moon-icon {
+    display: none;
+  }
+  :global(.dark) .sun-icon {
+    display: block;
+  }
+</style>
 
 <script is:inline>
   const theme = (() => {

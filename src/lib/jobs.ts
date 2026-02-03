@@ -37,7 +37,8 @@ interface SheetJob {
     description: string;
     "About Company": string;
     "Job Description": string;
-    status: string;
+    status?: string;
+    Status?: string; // Value from CSV might be here depending on case
     openings: string;
 }
 
@@ -143,7 +144,8 @@ function mapRowToJob(row: SheetJob): Job | null {
         // Prioritize 'Job Description' col, fallback to 'description', then empty
         description: row["Job Description"] || row.description || '',
         aboutCompany: row["About Company"] || '',
-        status: row.status?.trim() === 'Closed' ? 'Closed' : 'Open',
+        // Check both 'Status' and 'status', case-insensitive value check
+        status: (row.Status || row.status || '').trim().toLowerCase() === 'closed' ? 'Closed' : 'Open',
         openings: row.openings || '1'
     };
 }

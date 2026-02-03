@@ -59,9 +59,15 @@ const description = `Apply for ${title} at ${company}. ${experience} experience 
         </div>
 
         <div class="flex flex-col gap-4 min-w-[200px]">
-          <Button href={applyLink} target="_blank" rel="noopener noreferrer" size="lg" class="w-full shadow-lg hover:-translate-y-0.5">
-            Apply Now <ExternalLink class="size-4" />
-          </Button>
+          {job.status === 'Closed' ? (
+            <Button disabled variant="secondary" size="lg" class="w-full opacity-50 cursor-not-allowed">
+              Position Filled
+            </Button>
+          ) : (
+            <Button href={applyLink} target="_blank" rel="noopener noreferrer" size="lg" class="w-full shadow-lg hover:-translate-y-0.5">
+              Apply Now <ExternalLink class="size-4" />
+            </Button>
+          )}
           
           <div class="text-center text-sm text-muted-foreground bg-muted/30 py-3 rounded-lg border border-border/30">
             Experience: <span class="font-bold text-foreground block mt-0.5">{experience}</span>

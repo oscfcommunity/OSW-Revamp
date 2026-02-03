@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { job } = Astro.props;
-const { title, company, jobType, jobMode, location, postedOn, jobSlug, featured } = job;
+const { title, company, jobType, jobMode, location, postedOn, jobSlug, featured, status } = job;
 
 // Safely format date with fallback
 let formattedDate = 'Recently';
@@ -23,18 +23,26 @@ try {
 } catch (error) {
   console.error('Error formatting date:', error);
 }
+
+const isClosed = status === 'Closed';
 ---
 
 <a 
   href={`/jobs/${jobSlug}`} 
-  class={`job-card group relative block p-6 bg-card border rounded-2xl transition-all duration-300 ${featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'} flex flex-col h-full`}
+  class={`job-card group relative block p-6 bg-card border rounded-2xl transition-all duration-300 ${isClosed ? 'opacity-75 grayscale hover:grayscale-0 border-border/50' : featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'} flex flex-col h-full`}
   data-title={title}
   data-company={company}
   data-skills={job.skills?.join(' ') || ''} 
   data-location-type={jobMode} 
   data-type={jobType}
 >
-  {featured && (
+  {/* Priority Badges */}
+  {isClosed && (
+      <div class="absolute -top-3 right-6 bg-muted-foreground text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1 z-10">
+        Position Filled
+      </div>
+  )}
+  {!isClosed && featured && (
     <div class="absolute -top-3 right-6 bg-secondary text-secondary-foreground text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
       <Zap class="size-3 fill-current" /> Urgent
     </div>

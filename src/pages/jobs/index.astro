@@ -9,16 +9,26 @@ import { getJobs } from '../../lib/jobs';
 
 const allJobs = await getJobs();
 const sortedJobs = allJobs
-  .filter(job => job.status !== 'Closed')
+  // Logic: 
+  // 1. Open Jobs first (status !== 'Closed')
+  // 2. Featured Jobs first (within their status group)
+  // 3. Newest Jobs first
   .sort((a, b) => {
-  if (a.featured && !b.featured) return -1;
-  if (!a.featured && b.featured) return 1;
-  
-  // Safely handle date comparison
-  const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
-  const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
+    // 1. Status Priority (Open > Closed)
+    const isClosedA = a.status === 'Closed';
+    const isClosedB = b.status === 'Closed';
+    if (!isClosedA && isClosedB) return -1;
+    if (isClosedA && !isClosedB) return 1;
 
-  return timeB - timeA;
+    // 2. Featured Priority
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+  
+    // 3. Date Priority
+    const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
+    const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
+
+    return timeB - timeA;
 });
 ---
 

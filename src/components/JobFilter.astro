@@ -1,0 +1,84 @@
+---
+import { Search, Filter } from 'lucide-astro';
+---
+
+<div class="bg-card border border-border p-4 rounded-xl shadow-sm mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
+  <!-- Search Input -->
+  <div class="relative flex-1">
+    <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+    <input 
+      type="text" 
+      id="job-search" 
+      placeholder="Search by role, company, or skills..." 
+      class="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-muted-foreground/70"
+    />
+  </div>
+
+  <!-- Filters Wrapper -->
+  <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+    <!-- Location Filter -->
+    <select id="filter-location" class="px-3 py-2 bg-background border border-border rounded-lg text-sm text-muted-foreground focus:ring-2 focus:ring-primary outline-none cursor-pointer hover:border-primary/50 transition-colors">
+      <option value="">All Locations</option>
+      <option value="Remote">Remote</option>
+      <option value="Onsite">Onsite</option>
+      <option value="Hybrid">Hybrid</option>
+    </select>
+
+    <!-- Type Filter -->
+    <select id="filter-type" class="px-3 py-2 bg-background border border-border rounded-lg text-sm text-muted-foreground focus:ring-2 focus:ring-primary outline-none cursor-pointer hover:border-primary/50 transition-colors">
+      <option value="">All Job Types</option>
+      <option value="Full Time">Full Time</option>
+      <option value="Contract">Contract</option>
+      <option value="Part Time">Part Time</option>
+      <option value="Internship">Internship</option>
+    </select>
+  </div>
+</div>
+
+<script>
+  // Filter Logic
+  const searchInput = document.getElementById('job-search') as HTMLInputElement;
+  const locationSelect = document.getElementById('filter-location') as HTMLSelectElement;
+  const typeSelect = document.getElementById('filter-type') as HTMLSelectElement;
+  
+  // Use a Function to debounce or just run directly (small dataset = direct is fine)
+  function filterJobs() {
+    const query = searchInput.value.toLowerCase();
+    const locationFilter = locationSelect.value.toLowerCase();
+    const typeFilter = typeSelect.value.toLowerCase();
+
+    const jobCards = document.querySelectorAll('.job-card');
+    let hasResults = false;
+
+    jobCards.forEach((card) => {
+      const title = card.getAttribute('data-title')?.toLowerCase() || '';
+      const company = card.getAttribute('data-company')?.toLowerCase() || '';
+      const skills = card.getAttribute('data-skills')?.toLowerCase() || '';
+      const location = card.getAttribute('data-location-type')?.toLowerCase() || ''; // e.g., Remote, Onsite
+      const type = card.getAttribute('data-type')?.toLowerCase() || '';
+
+      // Check matches
+      const matchesSearch = title.includes(query) || company.includes(query) || skills.includes(query);
+      const matchesLocation = locationFilter === '' || location.includes(locationFilter);
+      const matchesType = typeFilter === '' || type.includes(typeFilter);
+
+      if (matchesSearch && matchesLocation && matchesType) {
+        (card as HTMLElement).style.display = 'flex'; // Restore display
+        hasResults = true;
+      } else {
+        (card as HTMLElement).style.display = 'none';
+      }
+    });
+
+    // Handle No Results
+    const noResultsMsg = document.getElementById('no-results-message');
+    if (noResultsMsg) {
+        noResultsMsg.style.display = hasResults ? 'none' : 'block';
+    }
+  }
+
+  // Event Listeners
+  searchInput?.addEventListener('input', filterJobs);
+  locationSelect?.addEventListener('change', filterJobs);
+  typeSelect?.addEventListener('change', filterJobs);
+</script>

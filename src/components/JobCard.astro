@@ -25,7 +25,15 @@ try {
 }
 ---
 
-<a href={`/jobs/${jobSlug}`} class={`group relative block p-6 bg-card border rounded-2xl transition-all duration-300 ${featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'} flex flex-col h-full`}>
+<a 
+  href={`/jobs/${jobSlug}`} 
+  class={`job-card group relative block p-6 bg-card border rounded-2xl transition-all duration-300 ${featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'} flex flex-col h-full`}
+  data-title={title}
+  data-company={company}
+  data-skills={job.skills?.join(' ') || ''} 
+  data-location-type={jobMode} 
+  data-type={jobType}
+>
   {featured && (
     <div class="absolute -top-3 right-6 bg-secondary text-secondary-foreground text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
       <Zap class="size-3 fill-current" /> Urgent
@@ -45,7 +53,15 @@ try {
         </div>
       </div>
       
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-wrap gap-2 text-xs">
+         {job.skills?.slice(0, 4).map((skill: string) => (
+            <span class="px-2 py-0.5 rounded bg-primary/5 text-primary border border-primary/10 font-medium tracking-wide">
+              {skill}
+            </span>
+         ))}
+      </div>
+
+      <div class="flex flex-wrap gap-3 pt-2">
         <Badge variant="muted">
           <MapPin class="size-3.5" /> {location}
         </Badge>

@@ -4,22 +4,15 @@ export const prerender = false;
 
 import Layout from '../layouts/Layout.astro';
 import Button from '../components/ui/Button.astro';
-import JobCard from '../components/JobCard.astro';
 import EventCard from '../components/EventCard.astro';
 import Terminal from '../components/Terminal.astro';
-import { getJobs } from '../lib/jobs';
 import { getEvents } from '../lib/events';
 
 // Fetch Data
-const allJobs = await getJobs();
-const recentJobs = allJobs
-    .filter(j => !j.featured && j.status !== 'Closed')
-    .sort((a, b) => new Date(b.postedOn).getTime() - new Date(a.postedOn).getTime())
-    .slice(0, 3);
 const upcomingEvents = (await getEvents())
     .filter(e => new Date(e.endDate) >= new Date())
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-    .slice(0, 2);
+    .slice(0, 1);
 ---
 
 <Layout title="Open Source Weekend | Connect, Share, Thrive">
@@ -124,7 +117,7 @@ const upcomingEvents = (await getEvents())
       </div>
       
       {upcomingEvents.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="max-w-md mx-auto">
           {upcomingEvents.map(event => (
               <EventCard event={event} />
           ))}

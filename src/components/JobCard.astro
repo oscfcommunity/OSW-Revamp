@@ -25,7 +25,7 @@ try {
 }
 ---
 
-<a href={`/jobs/${jobSlug}`} class={`group relative block p-8 pb-10 bg-card border rounded-2xl transition-all duration-300 ${featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'}`}>
+<a href={`/jobs/${jobSlug}`} class={`group relative block p-6 bg-card border rounded-2xl transition-all duration-300 ${featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'} flex flex-col h-full`}>
   {featured && (
     <div class="absolute -top-3 right-6 bg-secondary text-secondary-foreground text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
       <Zap class="size-3 fill-current" /> Urgent
@@ -33,7 +33,7 @@ try {
   )}
   
   <div class="flex flex-col h-full justify-between gap-6">
-    <div class="space-y-4">
+    <div class="space-y-4 mb-6 flex-1">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
           <IconText class="text-sm font-bold text-primary">

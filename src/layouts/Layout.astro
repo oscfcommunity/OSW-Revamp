@@ -41,37 +41,36 @@ const { title, description = "Find your next tech job." } = Astro.props;
     <header class="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
         <a href="/" class="flex items-center gap-4 group">
-          <img src="/logo.png" alt="Open Source Weekend" class="h-20 w-auto group-hover:scale-105 transition-transform drop-shadow-sm dark:bg-white dark:rounded-lg dark:p-1" />
-          <span class="text-3xl font-extrabold tracking-tight text-foreground hidden sm:block font-['Outfit'] group-hover:text-primary transition-colors">
-            Open Source Weekend
-          </span>
-        </a>
+      <!-- Light Mode Logo -->
+      <img src="/OSW Black.png" alt="Open Source Weekend" class="h-24 w-auto dark:hidden transition-transform group-hover:scale-105" />
+      <!-- Dark Mode Logo -->
+      <img src="/OSW White.png" alt="Open Source Weekend" class="h-24 w-auto hidden dark:block transition-transform group-hover:scale-105" />
+    </a>
         <nav class="flex items-center gap-6">
           <div class="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
             <a href="/" class="hover:text-primary transition-colors">Home</a>
             <a href="/events" class="hover:text-primary transition-colors">Events</a>
             <a href="/jobs" class="hover:text-primary transition-colors">Jobs</a>
+            <a href="https://github.com/StartOpenSource" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">GitHub</a>
           </div>
           <ThemeToggle />
         </nav>
       </div>
     </header>
-		<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+		<main class="flex-1">
 			<slot />
 		</main>
-    <footer class="border-t border-border bg-muted/30 mt-auto pt-16 pb-8">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+    <footer class="border-t border-border bg-muted/30 py-12 md:py-16 mt-auto">
+      <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-4 gap-12">
           
           <!-- Brand Column -->
           <div class="space-y-4">
-            <a href="/" class="flex items-center gap-3">
-              <img src="/logo.png" alt="Open Source Weekend" class="h-10 w-auto dark:bg-white dark:rounded-md dark:p-1" />
-              <span class="text-xl font-bold font-['Outfit']">Open Source Weekend</span>
+            <a href="/" class="flex items-center gap-3 block">
+               <!-- Light Mode Logo -->
+              <img src="/OSW Black.png" alt="Open Source Weekend" class="h-45 w-auto dark:hidden" />
+              <!-- Dark Mode Logo -->
+              <img src="/OSW White.png" alt="Open Source Weekend" class="h-45 w-auto hidden dark:block" />
             </a>
-            <p class="text-muted-foreground leading-relaxed max-w-xs">
-              A community-driven initiative empowering developers through open source technology, mentorship, and collaboration.
-            </p>
           </div>
 
           <!-- Quick Links -->

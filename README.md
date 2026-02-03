@@ -80,16 +80,19 @@ Visit `http://localhost:4321` to see the app.
 
 ## 📊 Data Management (Google Sheets)
 
-### Jobs Sheet Headers
-- `title`, `company`, `jobSlug`, `featured` (TRUE/FALSE)
-- `location`, `jobType` (Remote/Onsite), `jobMode` (Full-time/Contract)
-- `status` (Open/Closed), `openings` (Number)
-- `postedOn` (Date), `applyLink`, `description`, `About Company`
+### 📄 Google Sheet Schemas
 
-### Events Sheet Headers
-- `title`, `startDate` (ISO/Date), `endDate` (ISO/Date)
-- `link` (Registration URL), `location`, `type` (Meetup/Workshop)
-- `description`
+To correctly fetch data, your Google Sheets must use the **exact** headers below. Copy and paste these into the first row of your spreadsheets.
+
+#### 1. Events Sheet
+```csv
+title,startDate,endDate,link,location,type,description
+```
+
+#### 2. Jobs Sheet
+```csv
+title,company,jobSlug,featured,skills,experience,jobType,jobMode,location,companyWebsite,applyLink,postedOn,About Company,Job Description,Status,openings
+```
 
 ## 🚀 Deployment
 

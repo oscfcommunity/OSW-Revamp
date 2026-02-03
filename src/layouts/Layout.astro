@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { Github, Twitter, Linkedin, Facebook, Instagram } from 'lucide-astro';
+import { Github, Twitter, Linkedin, Facebook, Instagram, Menu, X } from 'lucide-astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 
 interface Props {
@@ -41,21 +41,54 @@ const { title, description = "Find your next tech job." } = Astro.props;
     <header class="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
         <a href="/" class="flex items-center gap-4 group">
-      <!-- Light Mode Logo -->
-      <img src="/OSW Black.png" alt="Open Source Weekend" class="h-24 w-auto dark:hidden transition-transform group-hover:scale-105" />
-      <!-- Dark Mode Logo -->
-      <img src="/OSW White.png" alt="Open Source Weekend" class="h-24 w-auto hidden dark:block transition-transform group-hover:scale-105" />
-    </a>
-        <nav class="flex items-center gap-6">
-          <div class="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+          <!-- Light Mode Logo -->
+          <img src="/OSW Black.png" alt="Open Source Weekend" class="h-24 w-auto dark:hidden transition-transform group-hover:scale-105" />
+          <!-- Dark Mode Logo -->
+          <img src="/OSW White.png" alt="Open Source Weekend" class="h-24 w-auto hidden dark:block transition-transform group-hover:scale-105" />
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-6">
+          <div class="flex items-center gap-6 text-sm font-medium text-muted-foreground">
             <a href="/" class="hover:text-primary transition-colors">Home</a>
             <a href="/events" class="hover:text-primary transition-colors">Events</a>
             <a href="/jobs" class="hover:text-primary transition-colors">Jobs</a>
           </div>
           <ThemeToggle />
         </nav>
+
+        <!-- Mobile Menu Button -->
+        <div class="flex items-center gap-4 md:hidden">
+            <ThemeToggle />
+            <button id="mobile-menu-btn" class="p-2 -mr-2 text-muted-foreground hover:text-foreground" aria-label="Open Menu">
+                <Menu class="size-6" />
+            </button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu Overlay -->
+      <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-background">
+          <nav class="flex flex-col p-4 space-y-4 text-base font-medium text-muted-foreground">
+            <a href="/" class="block px-4 py-2 hover:bg-muted/50 rounded-lg hover:text-primary transition-colors">Home</a>
+            <a href="/events" class="block px-4 py-2 hover:bg-muted/50 rounded-lg hover:text-primary transition-colors">Events</a>
+            <a href="/jobs" class="block px-4 py-2 hover:bg-muted/50 rounded-lg hover:text-primary transition-colors">Jobs</a>
+          </nav>
       </div>
     </header>
+
+    <script is:inline>
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn?.addEventListener('click', () => {
+            const isExpanded = mobileMenu.classList.contains('hidden');
+            if (isExpanded) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    </script>
 		<main class="flex-1">
 			<slot />
 		</main>

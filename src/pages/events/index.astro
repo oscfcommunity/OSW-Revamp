@@ -6,8 +6,18 @@ import { getEvents } from '../../lib/events';
 // Separate events based on date
 const events = await getEvents();
 const now = new Date();
-const upcomingEvents = events.filter(e => new Date(e.endDate) >= now).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-const pastEvents = events.filter(e => new Date(e.endDate) < now).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+
+// Helper to check if event is effectively over (strict past)
+const isPast = (endDate: string, title: string) => {
+  const end = new Date(endDate);
+  end.setDate(end.getDate() + 1); // Add 1 day buffer to include the full end date
+  const past = end < now;
+  console.log(`[DEBUG] Event: ${title} | EndDate: ${endDate} | End+1: ${end.toISOString()} | Now: ${now.toISOString()} | IsPast: ${past}`);
+  return past;
+};
+
+const upcomingEvents = events.filter(e => !isPast(e.endDate, e.title)).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+const pastEvents = events.filter(e => isPast(e.endDate, e.title)).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 ---
 
 <Layout title="Events - Open Source Weekend">

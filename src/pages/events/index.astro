@@ -67,7 +67,7 @@ const pastGroupKeys = Object.keys(pastGroups); // Keys are already in rough orde
       </div>
 
       {upcomingEvents.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="grid gap-6 grid-cols-1">
           {upcomingEvents.map(event => (
             <EventCard event={event} />
           ))}
@@ -106,56 +106,15 @@ const pastGroupKeys = Object.keys(pastGroups); // Keys are already in rough orde
                 </div>
 
                 <!-- Events in this Month -->
-                <div class="space-y-8">
+                <div class="space-y-6">
                     {pastGroups[monthKey].map((event, index) => (
-                        <div class="relative md:grid md:grid-cols-2 md:gap-8 items-center group">
-                            <!-- Timeline Dot -->
-                            <div class="absolute left-[-2rem] md:left-1/2 w-4 h-4 bg-primary rounded-full border-4 border-background -translate-x-1/2 z-10 shadow-sm mt-1.5 md:mt-0"></div>
-
-                            <!-- Content (Left or Right based on index) -->
-                            <div class={`contents md:block ${index % 2 === 0 ? 'md:text-right' : 'md:col-start-2'}`}>
-                                
-                                {/* For Odd items (Right side), we need an empty cell on Left side in Grid */}
-                                {index % 2 !== 0 && <div class="hidden md:block"></div>}
-                                
-                                <a href={event.link} target="_blank" class={`
-                                    block bg-card hover:bg-muted/50 border border-border/50 hover:border-primary/50 
-                                    p-6 rounded-2xl transition-all duration-300 hover:shadow-md group-hover:-translate-y-1
-                                    ${index % 2 === 0 ? '' : ''}
-                                `}>
-                                    <div class={`flex flex-col gap-2 ${index % 2 === 0 ? 'md:items-end' : 'md:items-start'}`}>
-                                        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                            <span>{new Date(event.startDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
-                                            {event.type && <span class="bg-primary/10 px-2 py-0.5 rounded text-[10px]">{event.type}</span>}
-                                        </div>
-                                        
-                                        <h3 class="text-xl font-bold font-['Outfit'] leading-tight group-hover:text-primary transition-colors">
-                                            {event.title}
-                                        </h3>
-
-                                        {event.description && (
-                                            <p class={`text-sm text-muted-foreground line-clamp-2 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                                                {event.description}
-                                            </p>
-                                        )}
-                                        
-                                        <div class={`flex items-center gap-4 mt-2 text-xs text-muted-foreground ${index % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
-                                             {event.location && (
-                                                <div class="flex items-center gap-1">
-                                                    <MapPin class="size-3" />
-                                                    {event.location}
-                                                </div>
-                                             )}
-                                             <div class="flex items-center gap-1">
-                                                 External Link <ExternalLink class="size-3" />
-                                             </div>
-                                        </div>
-                                    </div>
-                                </a>
-
-                                {/* For Even items (Left side), we need an empty cell on Right side in Grid */}
-                                {index % 2 === 0 && <div class="hidden md:block"></div>}
-                            </div>
+                        <div class="relative pl-8 md:pl-12 group">
+                            <!-- Timeline Dot for Item -->
+                             <div class="absolute left-[-5px] md:left-[-5px] top-6 w-3 h-3 bg-primary/20 border-2 border-primary rounded-full z-10 
+                                group-hover:bg-primary group-hover:scale-125 transition-all duration-300"></div>
+                            
+                            <!-- Card (Full Width) -->
+                            <EventCard event={event} />
                         </div>
                     ))}
                 </div>

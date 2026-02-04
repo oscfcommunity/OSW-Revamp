@@ -2,63 +2,166 @@
 import Layout from '../../layouts/Layout.astro';
 import EventCard from '../../components/EventCard.astro';
 import { getEvents } from '../../lib/events';
+import type { Event } from '../../lib/events';
+import { Calendar, MapPin, ExternalLink } from 'lucide-astro';
 
-// Separate events based on date
+// Fetch and Filter Logic
 const events = await getEvents();
 const now = new Date();
 
-// Helper to check if event is effectively over (strict past)
-const isPast = (endDate: string, title: string) => {
+// Helper: Check if event is strictly past (EndDate + 1 day buffer < Now)
+const isPast = (endDate: string) => {
   const end = new Date(endDate);
-  end.setDate(end.getDate() + 1); // Add 1 day buffer to include the full end date
-  const past = end < now;
-  console.log(`[DEBUG] Event: ${title} | EndDate: ${endDate} | End+1: ${end.toISOString()} | Now: ${now.toISOString()} | IsPast: ${past}`);
-  return past;
+  end.setDate(end.getDate() + 1); 
+  return end < now;
 };
 
-const upcomingEvents = events.filter(e => !isPast(e.endDate, e.title)).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-const pastEvents = events.filter(e => isPast(e.endDate, e.title)).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+// Sort Upcoming: Ascending (Soonest first)
+const upcomingEvents = events
+    .filter(e => !isPast(e.endDate))
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+// Sort Past: Descending (Most Recent first)
+const pastEvents = events
+    .filter(e => isPast(e.endDate))
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+
+// Helper: Group events by Month Year
+const groupEventsByMonth = (events: Event[]) => {
+    const groups: { [key: string]: Event[] } = {};
+    events.forEach(event => {
+        const date = new Date(event.startDate);
+        const key = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+        groups[key].push(event);
+    });
+    return groups;
+};
+
+const pastGroups = groupEventsByMonth(pastEvents);
+const pastGroupKeys = Object.keys(pastGroups); // Keys are already in rough order because data was sorted
 ---
 
 <Layout title="Events - Open Source Weekend">
-  <div class="max-w-6xl mx-auto px-4 py-12 space-y-16">
-    <!-- Header -->
-    <header class="text-center space-y-4 py-10">
-      <h1 class="text-4xl font-extrabold tracking-tight font-['Outfit']">Community <span class="text-primary">Events</span></h1>
-      <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
-        Join our workshops, meetups, and hackathons to learn, build, and connect.
+  <div class="max-w-4xl mx-auto px-4 py-12 space-y-16">
+    
+    <!-- Hero Header -->
+    <header class="text-center space-y-6 py-10">
+      <h1 class="text-5xl font-extrabold tracking-tight font-['Outfit']">
+        Community <span class="text-primary">Timeline</span>
+      </h1>
+      <p class="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+         Explore our journey. Join upcoming meetups or browse the archive of our shared history.
       </p>
     </header>
 
-    <!-- Upcoming Events -->
+    <!-- Upcoming Events Section -->
     <section class="space-y-8">
       <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold font-['Outfit']">Upcoming Events</h2>
+        <h2 class="text-2xl font-bold font-['Outfit'] flex items-center gap-2">
+            🚀 Upcoming
+        </h2>
         <div class="h-px bg-border flex-1"></div>
       </div>
 
       {upcomingEvents.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-2">
           {upcomingEvents.map(event => (
             <EventCard event={event} />
           ))}
         </div>
       ) : (
-        <p class="text-center text-muted-foreground py-10">No upcoming events scheduled at the moment.</p>
+        <div class="text-center py-12 border border-dashed border-border rounded-xl bg-muted/20">
+            <p class="text-muted-foreground">No upcoming events scheduled. Stay tuned!</p>
+        </div>
       )}
     </section>
 
-    <!-- Past Events -->
+    <!-- Timeline History -->
     {pastEvents.length > 0 && (
-      <section class="space-y-8 opacity-75">
+      <section class="space-y-12">
         <div class="flex items-center gap-4">
-          <h2 class="text-2xl font-bold font-['Outfit']">Past Events</h2>
+          <h2 class="text-2xl font-bold font-['Outfit'] flex items-center gap-2">
+              📜 Archive
+          </h2>
           <div class="h-px bg-border flex-1"></div>
         </div>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {pastEvents.map(event => (
-            <EventCard event={event} />
-          ))}
+
+        <div class="relative pl-8 md:pl-0">
+          <!-- Continuous Vertical Line -->
+          <div class="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-border -translate-x-1/2 hidden md:block"></div>
+          <div class="absolute left-0 top-0 bottom-0 w-px bg-border md:hidden"></div>
+
+          <div class="space-y-12">
+            {pastGroupKeys.map((monthKey, groupIndex) => (
+              <div class="relative">
+                
+                <!-- Month Marker -->
+                <div class="flex md:justify-center items-center mb-8 relative">
+                   <div class="bg-background text-foreground border border-border px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm z-10 mx-4 md:mx-auto">
+                     {monthKey}
+                   </div>
+                </div>
+
+                <!-- Events in this Month -->
+                <div class="space-y-8">
+                    {pastGroups[monthKey].map((event, index) => (
+                        <div class="relative md:grid md:grid-cols-2 md:gap-8 items-center group">
+                            <!-- Timeline Dot -->
+                            <div class="absolute left-[-2rem] md:left-1/2 w-4 h-4 bg-primary rounded-full border-4 border-background -translate-x-1/2 z-10 shadow-sm mt-1.5 md:mt-0"></div>
+
+                            <!-- Content (Left or Right based on index) -->
+                            <div class={`contents md:block ${index % 2 === 0 ? 'md:text-right' : 'md:col-start-2'}`}>
+                                
+                                {/* For Odd items (Right side), we need an empty cell on Left side in Grid */}
+                                {index % 2 !== 0 && <div class="hidden md:block"></div>}
+                                
+                                <a href={event.link} target="_blank" class={`
+                                    block bg-card hover:bg-muted/50 border border-border/50 hover:border-primary/50 
+                                    p-6 rounded-2xl transition-all duration-300 hover:shadow-md group-hover:-translate-y-1
+                                    ${index % 2 === 0 ? '' : ''}
+                                `}>
+                                    <div class={`flex flex-col gap-2 ${index % 2 === 0 ? 'md:items-end' : 'md:items-start'}`}>
+                                        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                            <span>{new Date(event.startDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+                                            {event.type && <span class="bg-primary/10 px-2 py-0.5 rounded text-[10px]">{event.type}</span>}
+                                        </div>
+                                        
+                                        <h3 class="text-xl font-bold font-['Outfit'] leading-tight group-hover:text-primary transition-colors">
+                                            {event.title}
+                                        </h3>
+
+                                        {event.description && (
+                                            <p class={`text-sm text-muted-foreground line-clamp-2 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
+                                                {event.description}
+                                            </p>
+                                        )}
+                                        
+                                        <div class={`flex items-center gap-4 mt-2 text-xs text-muted-foreground ${index % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
+                                             {event.location && (
+                                                <div class="flex items-center gap-1">
+                                                    <MapPin class="size-3" />
+                                                    {event.location}
+                                                </div>
+                                             )}
+                                             <div class="flex items-center gap-1">
+                                                 External Link <ExternalLink class="size-3" />
+                                             </div>
+                                        </div>
+                                    </div>
+                                </a>
+
+                                {/* For Even items (Left side), we need an empty cell on Right side in Grid */}
+                                {index % 2 === 0 && <div class="hidden md:block"></div>}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     )}

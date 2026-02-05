@@ -9,7 +9,7 @@ import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://techjobs.example.com',
+  site: 'https://opensourceweekend.org',
 
   vite: {
     plugins: [tailwindcss()]

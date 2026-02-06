@@ -37,16 +37,8 @@ cd Job_Portal
 npm install
 ```
 
-### 2. Configure Environment Variables
-
-Create a `.env` file in the root directory and add your Google Sheet CSV URLs:
-
 ```bash
-# Jobs Data Source
-GOOGLE_JOBS_SHEET_URL=https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv
-
-# Events Data Source
-GOOGLE_EVENTS_SHEET_URL=https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv
+# No environment variables required for standard setup
 ```
 
 > **Note**: Your Google Sheets must be "Published to the Web" as a CSV.
@@ -100,5 +92,4 @@ The project is configured for **Vercel**.
 
 1.  Push your code to GitHub/GitLab.
 2.  Import the project in Vercel.
-3.  **Crucial**: Add the `GOOGLE_JOBS_SHEET_URL` and `GOOGLE_EVENTS_SHEET_URL` environment variables in Vercel Project Settings.
-4.  Deploy!
+3.  **Deploy!** (Environment variables for Sheet URLs are now hardcoded in `astro.config.mjs`)

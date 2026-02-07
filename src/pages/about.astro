@@ -1,0 +1,121 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About Us | Open Source Weekend">
+  <div class="space-y-20 pb-20">
+    
+    <!-- Hero Section -->
+    <section class="relative py-20 overflow-hidden">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 blur-[100px] rounded-full -z-10 pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-4 text-center space-y-6">
+            <h1 class="text-4xl md:text-6xl font-extrabold font-['Outfit'] tracking-tight">
+                About <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Open Source Weekend</span>
+            </h1>
+            <p class="text-xl text-muted-foreground leading-relaxed">
+                An initiative to promote <span class="text-foreground font-medium">Open Source Technology</span>, foster collaborative participation, and build bridges between communities and industry.
+            </p>
+        </div>
+    </section>
+
+    <div class="max-w-5xl mx-auto px-4 space-y-24">
+        
+        <!-- Mission & Vision -->
+        <section class="grid md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                 <h2 class="text-3xl font-bold font-['Outfit']">Vision & <span class="text-primary">Mission</span></h2>
+                 <div class="prose prose-lg dark:prose-invert text-muted-foreground leading-relaxed">
+                    <p>
+                        Our vision is to provide an Open Ecosystem to learn and grow as professionals. We bring together Open Source advocates, enthusiasts, passionate developers, business leaders, and students to discuss how to contribute to the ever-evolving world of open source.
+                    </p>
+                    <p>
+                        We organize events <span class="text-foreground font-semibold">every Weekend</span> to provide a platform for learning, sharing knowledge, collaborating, and networking with like-minded individuals.
+                    </p>
+                 </div>
+            </div>
+            <div class="bg-muted/30 rounded-2xl p-8 border border-border relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
+                <h3 class="text-xl font-bold mb-4 font-['Outfit']">Our Core Values</h3>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1 flex h-2 w-2 rounded-full bg-primary"></span>
+                        <span>Open Exchange & Transparency</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1 flex h-2 w-2 rounded-full bg-secondary"></span>
+                        <span>Collaborative Participation</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1 flex h-2 w-2 rounded-full bg-primary"></span>
+                        <span>Rapid Prototyping</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1 flex h-2 w-2 rounded-full bg-secondary"></span>
+                        <span>Community-Oriented Development</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Stats & Impact -->
+        <section class="bg-card border border-border rounded-3xl p-8 md:p-12 text-center space-y-12">
+             <div class="max-w-3xl mx-auto space-y-4">
+                 <h2 class="text-3xl font-bold font-['Outfit']">Our <span class="text-secondary">Impact</span></h2>
+                 <p class="text-muted-foreground">
+                    Started in June 2015 by ComExpo Cyber Security Foundation, "Open Source Weekend" has become a movement for software freedom.
+                 </p>
+             </div>
+             
+             <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                 <div class="space-y-2">
+                     <span class="block text-4xl md:text-5xl font-['Outfit'] font-bold text-primary">300+</span>
+                     <span class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Meetups</span>
+                 </div>
+                 <div class="space-y-2">
+                     <span class="block text-4xl md:text-5xl font-['Outfit'] font-bold text-secondary">600+</span>
+                     <span class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Speakers</span>
+                 </div>
+                 <div class="space-y-2">
+                     <span class="block text-4xl md:text-5xl font-['Outfit'] font-bold text-primary">5000+</span>
+                     <span class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Attendees</span>
+                 </div>
+                 <div class="space-y-2">
+                     <span class="block text-4xl md:text-5xl font-['Outfit'] font-bold text-secondary">100+</span>
+                     <span class="text-sm font-medium text-muted-foreground uppercase tracking-wider">News Features</span>
+                 </div>
+             </div>
+        </section>
+
+        <!-- Who We Are / Aim -->
+        <section class="grid md:grid-cols-2 gap-12 items-start">
+             <div class="space-y-6">
+                <h2 class="text-3xl font-bold font-['Outfit']">Who We Are <span class="text-primary">?</span></h2>
+                <p class="text-lg text-muted-foreground leading-relaxed">
+                    OSCF serves as a platform for developers, enthusiasts, and organizations to come together, share knowledge, and contribute to open-source projects. We believe in the power of open-source software to drive innovation.
+                </p>
+             </div>
+             <div class="space-y-6">
+                <h2 class="text-3xl font-bold font-['Outfit']">Our <span class="text-secondary">Aim</span></h2>
+                <p class="text-lg text-muted-foreground leading-relaxed">
+                    Our mission is to create an inclusive and thriving open-source community that empowers developers. We strive to:
+                </p>
+                <ul class="space-y-4">
+                    <li class="flex gap-4">
+                        <div class="flex-none w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">1</div>
+                        <span class="text-muted-foreground pt-2">Foster collaboration and knowledge sharing.</span>
+                    </li>
+                    <li class="flex gap-4">
+                         <div class="flex-none w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-bold">2</div>
+                         <span class="text-muted-foreground pt-2">Support the development and maintenance of open-source projects.</span>
+                    </li>
+                    <li class="flex gap-4">
+                         <div class="flex-none w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">3</div>
+                         <span class="text-muted-foreground pt-2">Provide resources and mentorship for aspiring contributors.</span>
+                    </li>
+                </ul>
+             </div>
+        </section>
+
+    </div>
+  </div>
+</Layout>

@@ -17,7 +17,7 @@
     "lucide-astro": "^0.556.0",
     "marked": "^17.0.5",
     "papaparse": "^5.5.3",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.2.1",
     "typed.js": "^3.0.0"
   },
   "devDependencies": {

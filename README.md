@@ -93,3 +93,35 @@ The project is configured for **Vercel**.
 1.  Push your code to GitHub/GitLab.
 2.  Import the project in Vercel.
 3.  **Deploy!** (Environment variables for Sheet URLs are now hardcoded in `astro.config.mjs`)
+
+## 🧩 CI/CD — Automatic deploy to your VPS (GitHub Actions)
+
+This repository includes a GitHub Actions workflow at `.github/workflows/deploy.yml` that runs on every push to `main`. It does the following:
+
+- Checks out the repo
+- Copies the repository to your VPS via SCP
+- SSHes to the VPS and builds the Docker image there, then restarts the container
+
+Required GitHub Secrets
+
+- `VPS_HOST` — your VPS IP or hostname
+- `VPS_USER` — SSH user on the VPS (e.g., `root` or `deploy`)
+- `VPS_PRIVATE_KEY` — the private SSH key (PEM format) that matches a public key in `~/.ssh/authorized_keys` for `VPS_USER`
+- `VPS_PORT` — optional SSH port (defaults to `22`)
+- `VPS_TARGET_DIR` — path on the VPS where the repo will be copied and built (e.g., `/home/deploy/osw`)
+- `DOCKER_IMAGE_NAME` — optional image name (default: `osw-frontend:latest`)
+
+Notes and security
+
+- Add only the private key to GitHub Secrets, never commit keys to the repo.
+- Ensure the `VPS_USER` has permission to run Docker or use `sudo` from that account.
+- The workflow builds the Docker image on the VPS. This avoids pushing images to a registry.
+
+Quick checklist to enable deploys
+
+1. On your VPS, create a deploy user and give it Docker access, or use `root`.
+2. Add the public key to `/home/<user>/.ssh/authorized_keys`.
+3. Add the private key and other secrets to your GitHub repository's Secrets.
+4. Push a commit to the `trunk` branch — the workflow will run automatically.
+
+If you'd prefer pushing images to a registry (Docker Hub / GitHub Container Registry) and pulling them from the VPS instead, I can update the workflow to build & push the image from Actions and perform a `docker pull` on the VPS.

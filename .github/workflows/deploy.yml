@@ -40,6 +40,8 @@ jobs:
 
             docker run -d \
               --name osw \
-              -p 3000:80 \
+              -p 3000:4321 \
+              -e HOST=0.0.0.0 \
+              -e PORT=4321 \
               --restart unless-stopped \
               osw

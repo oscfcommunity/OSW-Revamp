@@ -1,21 +1,26 @@
 # Step 1: Build Astro app
-FROM node:18 as builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 RUN npm run build
 
-# Step 2: Serve with Nginx
-FROM nginx:alpine
+# Step 2: Run with Node.js (SSR)
+FROM node:20-alpine AS runtime
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Fix routing
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d
+# Copy the built output and node_modules needed at runtime
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENV HOST=0.0.0.0
+ENV PORT=4321
+ENV NODE_ENV=production
+
+EXPOSE 4321
+CMD ["node", "./dist/server/entry.mjs"]

@@ -28,8 +28,9 @@ jobs:
 
             cd /var/www/osw
 
-            # Pull latest code
-            git pull origin trunk
+            # Pull latest code (hard reset to always match remote)
+            git fetch origin trunk
+            git reset --hard origin/trunk
 
             # Build Docker image
             docker build -t osw .

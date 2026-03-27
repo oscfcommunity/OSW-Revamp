@@ -40,6 +40,6 @@ jobs:
 
             docker run -d \
               --name osw \
-              -p 80:80 \
+              -p 3000:80 \
               --restart unless-stopped \
               osw

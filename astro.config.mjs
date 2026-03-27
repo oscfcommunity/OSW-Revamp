@@ -7,6 +7,9 @@ import sitemap from '@astrojs/sitemap';
 import node from '@astrojs/node';
 
 
+import cloudflare from "@astrojs/cloudflare";
+
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://opensourceweekend.org',
@@ -21,7 +24,5 @@ export default defineConfig({
 
   integrations: [sitemap()],
   output: 'server',
-  adapter: node({
-    mode: 'standalone',
-  }),
+  adapter: cloudflare(),
 });

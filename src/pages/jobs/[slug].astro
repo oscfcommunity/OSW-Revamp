@@ -2,7 +2,7 @@
 
 import Layout from '../../layouts/Layout.astro';
 import { MapPin, Briefcase, Building2, Monitor, Clock, ChevronLeft, ExternalLink, Users } from 'lucide-astro';
-import { getJob, getJobs } from '../../lib/jobs';
+import { getJob } from '../../lib/jobs';
 import { marked } from 'marked';
 
 // Design System
@@ -11,16 +11,8 @@ import Button from '../../components/ui/Button.astro';
 import SkillTag from '../../components/ui/SkillTag.astro';
 import IconText from '../../components/ui/IconText.astro';
 
-export async function getStaticPaths() {
-  const jobs = await getJobs();
-  return jobs.map(job => ({
-    params: { slug: job.jobSlug },
-    props: { job },
-  }));
-}
-
 const { slug } = Astro.params;
-const { job } = Astro.props;
+const job = await getJob(slug!);
 
 if (!job) {
   return Astro.redirect('/404');

@@ -19,7 +19,7 @@ A comprehensive community platform built for **Open Source Weekend**, featuring 
 
 -   **Framework**: [Astro](https://astro.build/) (SSR mode)
 -   **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
--   **Deployment**: [Vercel](https://vercel.com/) (Serverless Functions)
+-   **Deployment**: VPS with Docker (via GitHub Actions CI/CD)
 -   **Data Source**: Google Sheets (via CSV export) for both Jobs and Events.
 
 ## ⚡ Getting Started
@@ -32,8 +32,8 @@ A comprehensive community platform built for **Open Source Weekend**, featuring 
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
-cd Job_Portal
+git clone https://github.com/oscfcommunity/OpenSourceWeekend.git
+cd OpenSourceWeekend
 npm install
 ```
 
@@ -67,7 +67,7 @@ Visit `http://localhost:4321` to see the app.
 │   │   ├── events/         # Events Page
 │   │   └── jobs/           # Job Board & Detail Pages
 │   └── layouts/            # Main Layout (Header, Footer)
-└── astro.config.mjs        # SSR configuration (Vercel adapter)
+└── astro.config.mjs        # SSR configuration (Node adapter)
 ```
 
 ## 📊 Data Management (Google Sheets)
@@ -86,15 +86,7 @@ title,startDate,endDate,link,location,type,description
 title,company,jobSlug,featured,skills,experience,jobType,jobMode,location,companyWebsite,applyLink,postedOn,About Company,Job Description,Status,openings
 ```
 
-## 🚀 Deployment
-
-The project is configured for **Vercel**.
-
-1.  Push your code to GitHub/GitLab.
-2.  Import the project in Vercel.
-3.  **Deploy!** (Environment variables for Sheet URLs are now hardcoded in `astro.config.mjs`)
-
-## 🧩 CI/CD — Automatic deploy to your VPS (GitHub Actions)
+## 🚀 Deployment — Automatic deploy to your VPS (GitHub Actions)
 
 This repository includes a GitHub Actions workflow at `.github/workflows/deploy.yml` that runs on every push to `main`. It does the following:
 

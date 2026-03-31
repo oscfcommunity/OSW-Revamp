@@ -117,3 +117,7 @@ Quick checklist to enable deploys
 4. Push a commit to the `trunk` branch — the workflow will run automatically.
 
 If you'd prefer pushing images to a registry (Docker Hub / GitHub Container Registry) and pulling them from the VPS instead, I can update the workflow to build & push the image from Actions and perform a `docker pull` on the VPS.
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.

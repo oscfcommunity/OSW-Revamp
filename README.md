@@ -118,6 +118,10 @@ Quick checklist to enable deploys
 
 If you'd prefer pushing images to a registry (Docker Hub / GitHub Container Registry) and pulling them from the VPS instead, I can update the workflow to build & push the image from Actions and perform a `docker pull` on the VPS.
 
+## Code of Conduct
+
+Please help keep this project welcoming and inclusive. By participating in this project you agree to abide by our [Code of Conduct](./CODE_OF_CONDUCT.md).
+
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.

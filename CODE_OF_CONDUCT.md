@@ -32,7 +32,7 @@ This Code of Conduct applies both within project spaces and in public spaces whe
 
 ## Reporting
 
-If you are subject to or witness unacceptable behavior, or have any other concerns, please report it by contacting the project team at: maintainers@opensourceweekend.example.
+If you are subject to or witness unacceptable behavior, or have any other concerns, please report it by contacting the project team at: opensourceweekend@gmail.com
 
 All reports will be handled with discretion and confidentiality to the extent possible. When you report an incident, please include as much of the following information as you can:
 

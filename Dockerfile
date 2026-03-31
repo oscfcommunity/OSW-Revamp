@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # Step 2: Run with Node.js (SSR)
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 WORKDIR /app
 

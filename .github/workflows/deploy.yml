@@ -23,7 +23,7 @@ jobs:
 
             # Clone if first time
             if [ ! -d "/var/www/osw/.git" ]; then
-              git clone https://github.com/oscfcommunity/opensourceweekend.git /var/www/osw
+              git clone https://github.com/oscfcommunity/osweekend.git /var/www/osw
             fi
 
             cd /var/www/osw

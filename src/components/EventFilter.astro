@@ -8,54 +8,62 @@ interface Props {
 const { locations } = Astro.props;
 ---
 
-<div class="bg-card border border-border rounded-xl p-4 md:p-6 shadow-sm space-y-4 md:space-y-0 md:flex md:items-center md:gap-4 sticky top-4 z-30 mb-8 w-full max-w-4xl mx-auto">
-  
+<div
+  class="bg-card border-border sticky top-4 z-30 mx-auto mb-8 w-full max-w-4xl space-y-4 rounded-xl border p-4 shadow-sm md:flex md:items-center md:gap-4 md:space-y-0 md:p-6"
+>
   {/* Search Input */}
   <div class="relative flex-1">
-    <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-    <input 
-      type="text" 
-      id="event-search" 
-      placeholder="Search events, communities, or topics..." 
-      class="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-['Outfit']"
+    <Search class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+    <input
+      type="text"
+      id="event-search"
+      placeholder="Search events, communities, or topics..."
+      class="bg-background border-border focus:ring-primary/50 w-full rounded-lg border py-2 pr-4 pl-10 font-['Outfit'] transition-all focus:ring-2 focus:outline-none"
     />
   </div>
 
   {/* Type Filter */}
   <div class="relative min-w-[140px]">
-      <Globe class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-      <select id="event-type-filter" class="w-full pl-10 pr-8 py-2 bg-background border border-border rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 font-['Outfit']">
-          <option value="all">All Types</option>
-          <option value="In-person">In-Person</option>
-          <option value="Online">Online</option>
-          <option value="Hybrid">Hybrid</option>
-      </select>
-      <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-xs">▼</div>
+    <Globe class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+    <select
+      id="event-type-filter"
+      class="bg-background border-border focus:ring-primary/50 w-full cursor-pointer appearance-none rounded-lg border py-2 pr-8 pl-10 font-['Outfit'] focus:ring-2 focus:outline-none"
+    >
+      <option value="all">All Types</option>
+      <option value="In-person">In-Person</option>
+      <option value="Online">Online</option>
+      <option value="Hybrid">Hybrid</option>
+    </select>
+    <div class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs opacity-50">
+      ▼
+    </div>
   </div>
 
   {/* Location Filter */}
   <div class="relative min-w-[160px]">
-      <MapPin class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-      <select id="event-location-filter" class="w-full pl-10 pr-8 py-2 bg-background border border-border rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 font-['Outfit']">
-          <option value="all">All Locations</option>
-          {locations.map(loc => (
-              <option value={loc}>{loc}</option>
-          ))}
-      </select>
-      <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-xs">▼</div>
+    <MapPin class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+    <select
+      id="event-location-filter"
+      class="bg-background border-border focus:ring-primary/50 w-full cursor-pointer appearance-none rounded-lg border py-2 pr-8 pl-10 font-['Outfit'] focus:ring-2 focus:outline-none"
+    >
+      <option value="all">All Locations</option>
+      {locations.map((loc) => <option value={loc}>{loc}</option>)}
+    </select>
+    <div class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs opacity-50">
+      ▼
+    </div>
   </div>
-
 </div>
 
 <script>
   const searchInput = document.getElementById('event-search') as HTMLInputElement;
   const typeSelect = document.getElementById('event-type-filter') as HTMLSelectElement;
   const locationSelect = document.getElementById('event-location-filter') as HTMLSelectElement;
-  
+
   // Debounce helper
-  function debounce(func: Function, wait: number) {
-    let timeout: number;
-    return function executedFunction(...args: any[]) {
+  function debounce(func: (...args: unknown[]) => void, wait: number) {
+    let timeout: ReturnType<typeof setTimeout>;
+    return function executedFunction(...args: unknown[]) {
       const later = () => {
         clearTimeout(timeout);
         func(...args);
@@ -69,49 +77,47 @@ const { locations } = Astro.props;
     const searchTerm = searchInput.value.toLowerCase();
     const typeFilter = typeSelect.value;
     const locationFilter = locationSelect.value;
-    
+
     // Select all event cards (both upcoming and past lists)
     const cards = document.querySelectorAll('.event-card-wrapper');
     let hasResults = false;
 
     cards.forEach((card) => {
-       const el = card as HTMLElement;
-       const title = el.dataset.title?.toLowerCase() || '';
-       const community = el.dataset.community?.toLowerCase() || '';
-       const tags = el.dataset.tags?.toLowerCase() || '';
-       const type = el.dataset.type || 'all'; // In-person, Online
-       const location = el.dataset.location || ''; // City, Country
+      const el = card as HTMLElement;
+      const title = el.dataset.title?.toLowerCase() || '';
+      const community = el.dataset.community?.toLowerCase() || '';
+      const tags = el.dataset.tags?.toLowerCase() || '';
+      const type = el.dataset.type || 'all'; // In-person, Online
+      const location = el.dataset.location || ''; // City, Country
 
-       // 1. Search Match
-       const matchesSearch = title.includes(searchTerm) || 
-                             community.includes(searchTerm) || 
-                             tags.includes(searchTerm);
-       
-       // 2. Type Match (Loose match for mixed types if needed, but strict is fine for now)
-       const matchesType = typeFilter === 'all' || type === typeFilter;
-       
-       // 3. Location Match
-       const matchesLocation = locationFilter === 'all' || location.includes(locationFilter);
+      // 1. Search Match
+      const matchesSearch =
+        title.includes(searchTerm) || community.includes(searchTerm) || tags.includes(searchTerm);
 
-       if (matchesSearch && matchesType && matchesLocation) {
-           el.classList.remove('hidden');
-           hasResults = true;
-       } else {
-           el.classList.add('hidden');
-       }
+      // 2. Type Match (Loose match for mixed types if needed, but strict is fine for now)
+      const matchesType = typeFilter === 'all' || type === typeFilter;
+
+      // 3. Location Match
+      const matchesLocation = locationFilter === 'all' || location.includes(locationFilter);
+
+      if (matchesSearch && matchesType && matchesLocation) {
+        el.classList.remove('hidden');
+        hasResults = true;
+      } else {
+        el.classList.add('hidden');
+      }
     });
 
     // Handle "No Results" messaging/visibility
     // (This is tricky with multiple sections. We might need section-specific empty states
     //  or just hide sections that become empty. For MVP, just filtering is good.)
-    
+
     // Hide empty month groups or headers if all their children are hidden?
-    // That's a nice polish step. 
+    // That's a nice polish step.
   }
 
   // Attach listeners
   searchInput?.addEventListener('input', debounce(filterEvents, 300));
   typeSelect?.addEventListener('change', filterEvents);
   locationSelect?.addEventListener('change', filterEvents);
-
 </script>

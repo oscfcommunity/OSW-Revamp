@@ -1,126 +1,170 @@
 # Open Source Weekend Community Platform
 
-A comprehensive community platform built for **Open Source Weekend**, featuring upcoming events, past meetups, and a dynamic job board. Powered by **Astro**, **Tailwind CSS**, and **Google Sheets** as the CMS.
+The community platform for **Open Source Weekend** — events, a job board, member accounts and a
+community forum. Built with **Astro** (SSR), **Tailwind CSS v4**, **Postgres** and **Drizzle ORM**.
 
 ## 🚀 Features
 
--   **Community Hub**: central landing page (`/`) showcasing the community mission, upcoming events, and job opportunities.
--   **Events System**:
-    -   Lists **Upcoming** and **Past** events automatically based on dates.
-    -   Dynamic data fetching from Google Sheets.
--   **Job Board**:
-    -   Real-time job listings fetched from Google Sheets.
-    -   **Status Indicators**: "Open" or "Closed" status with visual warnings for closed roles.
-    -   **Openings Count**: Displays the number of available positions.
--   **Server-Side Rendering (SSR)**: Dynamic content with excellent SEO and performance.
--   **Design System**: Premium, dark-mode ready UI built with Tailwind CSS v4 and `lucide-astro` icons.
+- **Community Hub**: landing page showing the mission, upcoming events and the latest jobs.
+- **Events**: upcoming events and a month-grouped archive, with detail pages carrying the agenda,
+  speakers, venue and photos.
+- **Job Board**: listings with status, mode and skills, plus markdown job descriptions.
+- **Forum**: categories, threads, replies, voting, reporting and moderation — all server-rendered and
+  usable without JavaScript.
+- **Accounts**: sign in with Google or GitHub (Better Auth), with roles (`user`, `moderator`,
+  `admin`).
+- **Admin CMS**: manage events, jobs and members in the app at `/admin`, plus a one-click import from
+  the legacy Google Sheets.
 
 ## 🛠️ Tech Stack
 
--   **Framework**: [Astro](https://astro.build/) (SSR mode)
--   **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
--   **Deployment**: VPS with Docker (via GitHub Actions CI/CD)
--   **Data Source**: Google Sheets (via CSV export) for both Jobs and Events.
+| Concern    | Choice                                                                  |
+| ---------- | ----------------------------------------------------------------------- |
+| Framework  | [Astro](https://astro.build/) 6, SSR via `@astrojs/node`                |
+| Styling    | [Tailwind CSS v4](https://tailwindcss.com/) with CSS variable tokens    |
+| Database   | Postgres 17 (production) / [PGlite](https://pglite.dev) (local + tests) |
+| ORM        | [Drizzle](https://orm.drizzle.team/) with generated SQL migrations      |
+| Auth       | [Better Auth](https://better-auth.com) — Google and GitHub OAuth        |
+| Markdown   | remark + rehype with `rehype-sanitize` (user content is never trusted)  |
+| Tests      | [Vitest](https://vitest.dev) against a real, migrated database          |
+| Deployment | Docker Compose on a VPS via GitHub Actions                              |
 
 ## ⚡ Getting Started
 
 ### Prerequisites
 
--   Node.js (v18+)
--   npm
+- Node.js 22+
+- npm
 
-### 1. Clone the repository
+No database server is needed for local development: the app falls back to **PGlite**, an embedded
+build of Postgres, stored in `.pglite/`.
+
+### 1. Install
 
 ```bash
-git clone https://github.com/oscfcommunity/OpenSourceWeekend.git
-cd OpenSourceWeekend
+git clone https://github.com/oscfcommunity/osweekend.git
+cd osweekend
 npm install
 ```
 
+### 2. Configure
+
 ```bash
-# No environment variables required for standard setup
+cp .env.example .env
 ```
 
-> **Note**: Your Google Sheets must be "Published to the Web" as a CSV.
-
-### 3. Run Locally
+At minimum, set:
 
 ```bash
+BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+ADMIN_EMAILS=you@example.com     # promoted to admin on sign in
+```
+
+`ADMIN_EMAILS` is how the first admin account is created — there is no other way in.
+
+For Google/GitHub sign in, register OAuth clients with these callback URLs and fill in the ids and
+secrets:
+
+- `http://localhost:4321/api/auth/callback/google`
+- `http://localhost:4321/api/auth/callback/github`
+
+Until those exist, the login page offers an email and password form. **That form is development
+only** and is disabled in production builds.
+
+### 3. Create the database and run
+
+```bash
+npm run db:migrate
 npm run dev
 ```
 
-Visit `http://localhost:4321` to see the app.
+Visit `http://localhost:4321`.
+
+### 4. Load the existing content
+
+Sign in, open `/admin`, and use **Import from Google Sheets** (try **Dry run** first — it reports
+what it would write, and which rows it would skip, without touching the database). Then set
+`CONTENT_SOURCE=db` in `.env` and restart to serve events and jobs from Postgres instead of the
+sheets.
+
+## 📜 Scripts
+
+| Command               | What it does                                        |
+| --------------------- | --------------------------------------------------- |
+| `npm run dev`         | Dev server on port 4321                             |
+| `npm run build`       | Production build                                    |
+| `npm test`            | Run the test suite                                  |
+| `npm run check`       | Typecheck (`astro check`)                           |
+| `npm run format`      | Format with Prettier                                |
+| `npm run db:generate` | Generate a migration from schema changes            |
+| `npm run db:migrate`  | Apply migrations (PGlite locally, Postgres in prod) |
 
 ## 📂 Project Structure
 
 ```
+├── drizzle/                  # Generated SQL migrations (committed, never edited by hand)
+├── scripts/
+│   ├── migrate.ts            # Applies migrations to whichever database is configured
+│   ├── backup-db.sh          # Nightly pg_dump with retention (run on the VPS)
+│   └── restore-db.sh         # Restores a dump
 ├── src/
+│   ├── actions/              # Astro Actions: every mutation in the app
 │   ├── components/
-│   │   ├── ui/             # Reusable design system (Badge, Button, etc.)
-│   │   ├── EventCard.astro # Event display component
-│   │   └── JobCard.astro   # Job display component
+│   │   ├── admin/            # CMS form controls
+│   │   ├── forum/            # Forum presentation
+│   │   └── ui/               # Design system (Badge, Button, …)
+│   ├── db/schema/            # Drizzle schema: auth, content, community, forum, search
 │   ├── lib/
-│   │   ├── events.ts       # Events fetching & caching logic
-│   │   └── jobs.ts         # Jobs fetching & caching logic
-│   ├── pages/
-│   │   ├── index.astro     # Landing Page
-│   │   ├── events/         # Events Page
-│   │   └── jobs/           # Job Board & Detail Pages
-│   └── layouts/            # Main Layout (Header, Footer)
-└── astro.config.mjs        # SSR configuration (Node adapter)
+│   │   ├── auth.ts           # Better Auth configuration
+│   │   ├── guards.ts         # Authorisation predicates — the real security boundary
+│   │   ├── markdown.ts       # Sanitised markdown rendering
+│   │   ├── rate-limit.ts     # Postgres-backed rate limiting
+│   │   ├── events*/ jobs*/   # Content: public API, sheet backend, database backend
+│   │   └── forum/            # Forum reads and writes
+│   ├── middleware.ts         # Session loading and route guards
+│   └── pages/                # Routes, including /admin, /forum and /api
+└── compose.yaml              # Production stack: app + postgres + migrations
 ```
 
-## 📊 Data Management (Google Sheets)
+### Where content comes from
 
-### 📄 Google Sheet Schemas
+`getEvents()`, `getEvent()`, `getJobs()` and `getJob()` are the only entry points pages use. The
+`CONTENT_SOURCE` environment variable decides whether they read from the Google Sheets or from
+Postgres, so the cutover is a one-line change and the rollback is the same.
 
-To correctly fetch data, your Google Sheets must use the **exact** headers below. Copy and paste these into the first row of your spreadsheets.
+## 🔐 Security notes
 
-#### 1. Events Sheet
-```csv
-title,startDate,endDate,link,location,type,description
-```
+- User-written markdown is sanitised on the syntax tree by `rehype-sanitize` before any HTML exists,
+  and rendered at write time. There is a regression suite of XSS payloads in `src/lib/markdown.test.ts`.
+- `role` and `reputation` are not accepted from sign-up input, so a crafted payload cannot grant
+  itself admin.
+- Route middleware decides where to send a browser; `requireRole` inside each action is what actually
+  authorises the write.
+- Moderation is soft-delete only — content is hidden, never destroyed.
 
-#### 2. Jobs Sheet
-```csv
-title,company,jobSlug,featured,skills,experience,jobType,jobMode,location,companyWebsite,applyLink,postedOn,About Company,Job Description,Status,openings
-```
+## 🚀 Deployment
 
-## 🚀 Deployment — Automatic deploy to your VPS (GitHub Actions)
+`.github/workflows/deploy.yml` runs on pushes to `trunk`, **after** CI passes, and on the VPS:
 
-This repository includes a GitHub Actions workflow at `.github/workflows/deploy.yml` that runs on every push to `main`. It does the following:
+1. takes a `pg_dump` backup,
+2. builds the images,
+3. runs migrations as a separate step that fails the deploy loudly,
+4. brings the stack up with `docker compose up -d`.
 
-- Checks out the repo
-- Copies the repository to your VPS via SCP
-- SSHes to the VPS and builds the Docker image there, then restarts the container
+Required GitHub secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`.
 
-Required GitHub Secrets
+On the server, `/var/www/osw/.env` holds the real configuration (`chmod 600`, never committed) and
+must include `POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL=https://opensourceweekend.org`
+and the OAuth credentials. Put nginx or Caddy in front for TLS and forward `X-Forwarded-Proto` —
+without it the app believes it is on HTTP and secure cookies are silently dropped.
 
-- `VPS_HOST` — your VPS IP or hostname
-- `VPS_USER` — SSH user on the VPS (e.g., `root` or `deploy`)
-- `VPS_PRIVATE_KEY` — the private SSH key (PEM format) that matches a public key in `~/.ssh/authorized_keys` for `VPS_USER`
-- `VPS_PORT` — optional SSH port (defaults to `22`)
-- `VPS_TARGET_DIR` — path on the VPS where the repo will be copied and built (e.g., `/home/deploy/osw`)
-- `DOCKER_IMAGE_NAME` — optional image name (default: `osw-frontend:latest`)
-
-Notes and security
-
-- Add only the private key to GitHub Secrets, never commit keys to the repo.
-- Ensure the `VPS_USER` has permission to run Docker or use `sudo` from that account.
-- The workflow builds the Docker image on the VPS. This avoids pushing images to a registry.
-
-Quick checklist to enable deploys
-
-1. On your VPS, create a deploy user and give it Docker access, or use `root`.
-2. Add the public key to `/home/<user>/.ssh/authorized_keys`.
-3. Add the private key and other secrets to your GitHub repository's Secrets.
-4. Push a commit to the `trunk` branch — the workflow will run automatically.
-
-If you'd prefer pushing images to a registry (Docker Hub / GitHub Container Registry) and pulling them from the VPS instead, I can update the workflow to build & push the image from Actions and perform a `docker pull` on the VPS.
+Schedule `scripts/backup-db.sh` nightly and copy the dumps off the box. Forum posts and member
+accounts cannot be re-derived from anywhere else.
 
 ## Code of Conduct
 
-Please help keep this project welcoming and inclusive. By participating in this project you agree to abide by our [Code of Conduct](./CODE_OF_CONDUCT.md).
+Please help keep this project welcoming and inclusive. By participating in this project you agree to
+abide by our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## License
 

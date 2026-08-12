@@ -6,6 +6,8 @@ interface Props {
 const { skill } = Astro.props;
 ---
 
-<span class="px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm border border-primary/20 shadow-sm hover:bg-primary/20 transition-colors cursor-default select-none">
+<span
+  class="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 cursor-default rounded-full border px-4 py-1.5 text-sm font-bold shadow-sm transition-colors select-none"
+>
   {skill}
 </span>

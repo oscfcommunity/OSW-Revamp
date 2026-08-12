@@ -3,6 +3,7 @@ import { Calendar, Clock, MapPin, ExternalLink, Ticket, Mic } from 'lucide-astro
 import Badge from './ui/Badge.astro';
 import Button from './ui/Button.astro';
 import type { Event } from '../lib/events';
+import { hostnameOf } from '../lib/url';
 
 interface Props {
   event: Event;
@@ -14,7 +15,7 @@ const formatDateRange = (start: string, end: string) => {
   const s = new Date(start);
   const e = new Date(end);
   const options: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
-  
+
   if (s.toDateString() === e.toDateString()) {
     return s.toLocaleDateString('en-US', options);
   }
@@ -23,116 +24,165 @@ const formatDateRange = (start: string, end: string) => {
 
 const isCfpOpen = (() => {
   if (event.cfpStatus !== 'Open') return false;
-  
+
   const now = new Date();
-  
+
   // Check strict CFP deadline if present
   if (event.cfpEndDate) {
-      if (new Date(event.cfpEndDate) < now) return false;
+    if (new Date(event.cfpEndDate) < now) return false;
   }
-  
+
   // If no CFP deadline, assume strictly closed if event itself is past
   if (new Date(event.endDate) < now) return false;
-  
+
   return true;
 })();
 
+const externalHost = hostnameOf(event.link);
+
 const cfpLabel = isCfpOpen ? 'CFP is Open' : 'CFP Closed';
-const cfpColor = isCfpOpen ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400';
+const cfpColor = isCfpOpen
+  ? 'text-green-600 dark:text-green-400'
+  : 'text-red-500 dark:text-red-400';
 ---
 
-<div class={`group relative bg-card border border-border rounded-xl transition-all hover:shadow-md overflow-hidden flex flex-col ${event.featured ? 'ring-2 ring-primary/20' : ''}`}>
-  
+<div
+  class={`group relative bg-card border border-border rounded-xl transition-all hover:shadow-md overflow-hidden flex flex-col ${event.featured ? 'ring-2 ring-primary/20' : ''}`}
+>
   {/* Header Bar - Featured & Community */}
-  <div class="bg-muted/30 px-4 py-2 flex items-center justify-between text-xs border-b border-border">
-     <div class="flex items-center gap-3">
-         {event.featured && (
-             <Badge variant="default" class="bg-green-600 hover:bg-green-700 text-white border-none text-[10px] uppercase tracking-wider font-bold px-2 py-0.5">
-                 PRO EVENT
-             </Badge>
-         )}
-         {event.community && (
-             <span class="font-bold text-primary flex items-center gap-1.5">
-                 {event.community}
-             </span>
-         )}
-     </div>
-     
-     {/* External Link Icon as visual cue */}
-     <a href={event.link} target="_blank" rel="noopener noreferrer" class="text-muted-foreground hover:text-primary transition-colors" aria-label="Visit Event Page">
-         <ExternalLink class="size-3.5" />
-     </a>
+  <div
+    class="bg-muted/30 border-border flex items-center justify-between border-b px-4 py-2 text-xs"
+  >
+    <div class="flex items-center gap-3">
+      {
+        event.featured && (
+          <Badge
+            variant="default"
+            class="border-none bg-green-600 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase hover:bg-green-700"
+          >
+            PRO EVENT
+          </Badge>
+        )
+      }
+      {
+        event.community && (
+          <span class="text-primary flex items-center gap-1.5 font-bold">{event.community}</span>
+        )
+      }
+    </div>
+
+    {/* External Link Icon as visual cue */}
+    {
+      externalHost && (
+        <a
+          href={event.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-muted-foreground hover:text-primary transition-colors"
+          aria-label="Visit Event Page"
+        >
+          <ExternalLink class="size-3.5" />
+        </a>
+      )
+    }
   </div>
 
-  <div class="p-5 flex flex-col md:flex-row gap-6 md:items-start">
-      
-      {/* Icon / Image Placeholder - Maybe distinct per event type or community logo if available? 
+  <div class="flex flex-col gap-6 p-5 md:flex-row md:items-start">
+    {
+      /* Icon / Image Placeholder - Maybe distinct per event type or community logo if available? 
           For now, using a stylized color block or icon based on type.
-      */}
-      <div class="shrink-0 hidden md:flex">
-          <div class="size-16 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-               {event.type === 'Conference' ? <Ticket class="size-8" /> : 
-                event.type === 'Hackathon' ? <Mic class="size-8" /> :
-                <Calendar class="size-8" />}
-          </div>
+      */
+    }
+    <div class="hidden shrink-0 md:flex">
+      <div
+        class="bg-primary/10 text-primary border-primary/20 flex size-16 items-center justify-center rounded-lg border"
+      >
+        {
+          event.type === 'Conference' ? (
+            <Ticket class="size-8" />
+          ) : event.type === 'Hackathon' ? (
+            <Mic class="size-8" />
+          ) : (
+            <Calendar class="size-8" />
+          )
+        }
+      </div>
+    </div>
+
+    <div class="flex-1 space-y-3">
+      {/* Title & Link */}
+      <div>
+        <a href={`/events/${event.slug}`} class="group-hover:text-primary block transition-colors">
+          <h3 class="font-['Outfit'] text-xl leading-tight font-bold">{event.title}</h3>
+        </a>
+        {
+          externalHost && (
+            <a
+              href={event.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-muted-foreground hover:text-primary mt-1 inline-flex items-center gap-1 text-xs hover:underline"
+            >
+              {externalHost}
+            </a>
+          )
+        }
       </div>
 
-      <div class="flex-1 space-y-3">
-          
-          {/* Title & Link */}
-          <div>
-              <a href={event.link} target="_blank" rel="noopener noreferrer" class="block group-hover:text-primary transition-colors">
-                 <h3 class="text-xl font-bold font-['Outfit'] leading-tight">{event.title}</h3>
-              </a>
-              <a href={event.link} target="_blank" class="text-xs text-muted-foreground hover:text-primary hover:underline mt-1 inline-flex items-center gap-1">
-                  {new URL(event.link).hostname}
-              </a>
-          </div>
-          
-          {/* Main Details */}
-          <div class="flex flex-wrap gap-y-2 gap-x-6 text-sm text-foreground/80">
-              <div class="flex items-center gap-1.5">
-                  <span class="font-semibold text-foreground">Event Dates:</span>
-                  <span>{formatDateRange(event.startDate, event.endDate)}</span>
-              </div>
-              
-              {(event.venue || event.location) && (
-                  <div class="flex items-center gap-1.5">
-                       <MapPin class="size-4 text-muted-foreground" />
-                       <span>{event.venue === 'TBA' || event.venue === 'Looking for venue' ? (
-                           <span class="italic text-muted-foreground">{event.venue}</span>
-                       ) : (
-                           event.venue || event.location
-                       )}</span>
-                  </div>
-              )}
-          </div>
+      {/* Main Details */}
+      <div class="text-foreground/80 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <div class="flex items-center gap-1.5">
+          <span class="text-foreground font-semibold">Event Dates:</span>
+          <span>{formatDateRange(event.startDate, event.endDate)}</span>
+        </div>
 
-          {/* CFP Status */}
-          {(event.cfpStatus || event.cfpEndDate) && (
-              <div class="flex items-center gap-2 text-sm">
-                  <span class={`font-bold ${cfpColor}`}>
-                      {cfpLabel}
-                  </span>
-                  {event.cfpEndDate && isCfpOpen && (
-                      <span class="text-muted-foreground text-xs">
-                          (Ends: {new Date(event.cfpEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
-                      </span>
-                  )}
-              </div>
-          )}
-          
-          {/* Tags */}
-          {event.tags && event.tags.length > 0 && (
-              <div class="flex flex-wrap gap-2 pt-1">
-                  {event.tags.map(tag => (
-                      <span class="text-xs text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
-                          {tag}
-                      </span>
-                  ))}
-              </div>
-          )}
-
+        {
+          (event.venue || event.location) && (
+            <div class="flex items-center gap-1.5">
+              <MapPin class="text-muted-foreground size-4" />
+              <span>
+                {event.venue === 'TBA' || event.venue === 'Looking for venue' ? (
+                  <span class="text-muted-foreground italic">{event.venue}</span>
+                ) : (
+                  event.venue || event.location
+                )}
+              </span>
+            </div>
+          )
+        }
       </div>
+
+      {/* CFP Status */}
+      {
+        (event.cfpStatus || event.cfpEndDate) && (
+          <div class="flex items-center gap-2 text-sm">
+            <span class={`font-bold ${cfpColor}`}>{cfpLabel}</span>
+            {event.cfpEndDate && isCfpOpen && (
+              <span class="text-muted-foreground text-xs">
+                (Ends:{' '}
+                {new Date(event.cfpEndDate).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+                )
+              </span>
+            )}
+          </div>
+        )
+      }
+
+      {/* Tags */}
+      {
+        event.tags && event.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 pt-1">
+            {event.tags.map((tag) => (
+              <span class="text-primary bg-primary/5 border-primary/10 rounded border px-2 py-0.5 text-xs">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )
+      }
+    </div>
   </div>
 </div>

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -13,6 +13,12 @@
   --card: #ffffff;
   --card-foreground: #0f172a;
   --border: #e2e8f0;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --ring: #008080;
+  --input: #e2e8f0;
 }
 
 @theme {
@@ -27,6 +33,12 @@
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
 }
 
 .dark {
@@ -41,6 +53,12 @@
   --card: #0f172a;
   --card-foreground: #f8fafc;
   --border: #1e293b;
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+  --destructive: #f87171;
+  --destructive-foreground: #0f172a;
+  --ring: #2dd4bf;
+  --input: #1e293b;
 }
 
 body {

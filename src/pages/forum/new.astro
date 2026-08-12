@@ -1,0 +1,99 @@
+---
+import { actions } from 'astro:actions';
+
+import Layout from '../../layouts/Layout.astro';
+import { db } from '../../db';
+import { ensureCategories, listCategories } from '../../lib/forum/repo';
+import { hasRole } from '../../lib/guards';
+import { ChevronLeft } from 'lucide-astro';
+
+const viewer = Astro.locals.viewer;
+const result = Astro.getActionResult(actions.forum.createThread);
+
+if (result && !result.error) {
+  return Astro.redirect(result.data.url, 303);
+}
+
+await ensureCategories(db);
+const categories = await listCategories(db);
+const postable = categories.filter((category) => hasRole(viewer, category.minRoleToPost));
+
+const preselected = Astro.url.searchParams.get('c');
+---
+
+<Layout title="New thread | Forum" description="Start a discussion with the community.">
+  <div class="mx-auto max-w-2xl space-y-6 px-4 py-10">
+    <a
+      href="/forum"
+      class="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
+    >
+      <ChevronLeft class="size-4" /> Back to the forum
+    </a>
+
+    <h1 class="font-['Outfit'] text-3xl font-extrabold tracking-tight">Start a thread</h1>
+
+    <form
+      method="POST"
+      action={actions.forum.createThread}
+      class="bg-card border-border space-y-5 rounded-xl border p-6"
+    >
+      {
+        result?.error && (
+          <p class="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm">
+            {result.error.message}
+          </p>
+        )
+      }
+
+      <div class="space-y-1.5">
+        <label for="categoryId" class="block text-sm font-medium">Category</label>
+        <select
+          id="categoryId"
+          name="categoryId"
+          required
+          class="border-border bg-background w-full rounded-lg border px-3 py-2 text-sm"
+        >
+          {
+            postable.map((category) => (
+              <option value={category.id} selected={category.slug === preselected}>
+                {category.name}
+              </option>
+            ))
+          }
+        </select>
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="title" class="block text-sm font-medium">Title</label>
+        <input
+          id="title"
+          name="title"
+          required
+          minlength="8"
+          maxlength="160"
+          placeholder="What do you want to talk about?"
+          class="border-border bg-background w-full rounded-lg border px-3 py-2 text-sm"
+        />
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="body" class="block text-sm font-medium">Post</label>
+        <textarea
+          id="body"
+          name="body"
+          rows="10"
+          required
+          minlength="20"
+          placeholder="Markdown is supported. Links from new accounts are marked nofollow."
+          class="border-border bg-background w-full rounded-lg border px-3 py-2 text-sm"></textarea>
+      </div>
+
+      <button
+        type="submit"
+        class="bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-lg px-6 text-sm font-bold"
+      >
+        Post thread
+      </button>
+    </form>
+  </div>
+</Layout>

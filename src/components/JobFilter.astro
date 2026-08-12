@@ -2,22 +2,27 @@
 import { Search, Filter } from 'lucide-astro';
 ---
 
-<div class="bg-card border border-border p-4 rounded-xl shadow-sm mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
+<div
+  class="bg-card border-border mb-8 space-y-4 rounded-xl border p-4 shadow-sm md:flex md:items-center md:gap-4 md:space-y-0"
+>
   <!-- Search Input -->
   <div class="relative flex-1">
-    <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-    <input 
-      type="text" 
-      id="job-search" 
-      placeholder="Search by role, company, or skills..." 
-      class="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-muted-foreground/70"
+    <Search class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+    <input
+      type="text"
+      id="job-search"
+      placeholder="Search by role, company, or skills..."
+      class="bg-background border-border focus:ring-primary focus:border-primary placeholder:text-muted-foreground/70 w-full rounded-lg border py-2 pr-4 pl-10 transition-all outline-none focus:ring-2"
     />
   </div>
 
   <!-- Filters Wrapper -->
-  <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+  <div class="scrollbar-hide flex gap-2 overflow-x-auto pb-2 md:pb-0">
     <!-- Location Filter -->
-    <select id="filter-location" class="px-3 py-2 bg-background border border-border rounded-lg text-sm text-muted-foreground focus:ring-2 focus:ring-primary outline-none cursor-pointer hover:border-primary/50 transition-colors">
+    <select
+      id="filter-location"
+      class="bg-background border-border text-muted-foreground focus:ring-primary hover:border-primary/50 cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors outline-none focus:ring-2"
+    >
       <option value="">All Locations</option>
       <option value="Remote">Remote</option>
       <option value="Onsite">Onsite</option>
@@ -25,7 +30,10 @@ import { Search, Filter } from 'lucide-astro';
     </select>
 
     <!-- Type Filter -->
-    <select id="filter-type" class="px-3 py-2 bg-background border border-border rounded-lg text-sm text-muted-foreground focus:ring-2 focus:ring-primary outline-none cursor-pointer hover:border-primary/50 transition-colors">
+    <select
+      id="filter-type"
+      class="bg-background border-border text-muted-foreground focus:ring-primary hover:border-primary/50 cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors outline-none focus:ring-2"
+    >
       <option value="">All Job Types</option>
       <option value="Full Time">Full Time</option>
       <option value="Contract">Contract</option>
@@ -40,7 +48,7 @@ import { Search, Filter } from 'lucide-astro';
   const searchInput = document.getElementById('job-search') as HTMLInputElement;
   const locationSelect = document.getElementById('filter-location') as HTMLSelectElement;
   const typeSelect = document.getElementById('filter-type') as HTMLSelectElement;
-  
+
   // Use a Function to debounce or just run directly (small dataset = direct is fine)
   function filterJobs() {
     const query = searchInput.value.toLowerCase();
@@ -58,7 +66,8 @@ import { Search, Filter } from 'lucide-astro';
       const type = card.getAttribute('data-type')?.toLowerCase() || '';
 
       // Check matches
-      const matchesSearch = title.includes(query) || company.includes(query) || skills.includes(query);
+      const matchesSearch =
+        title.includes(query) || company.includes(query) || skills.includes(query);
       const matchesLocation = locationFilter === '' || location.includes(locationFilter);
       const matchesType = typeFilter === '' || type.includes(typeFilter);
 
@@ -73,7 +82,7 @@ import { Search, Filter } from 'lucide-astro';
     // Handle No Results
     const noResultsMsg = document.getElementById('no-results-message');
     if (noResultsMsg) {
-        noResultsMsg.style.display = hasResults ? 'none' : 'block';
+      noResultsMsg.style.display = hasResults ? 'none' : 'block';
     }
   }
 

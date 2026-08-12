@@ -1,0 +1,16 @@
+---
+import { actions } from 'astro:actions';
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import EventForm from '../../../components/admin/EventForm.astro';
+
+const result = Astro.getActionResult(actions.admin.saveEvent);
+
+if (result && !result.error) {
+  return Astro.redirect(`/admin/events/${result.data.id}?saved=1`);
+}
+---
+
+<AdminLayout title="New event | Admin" heading="New event">
+  <EventForm error={result?.error?.message} />
+</AdminLayout>

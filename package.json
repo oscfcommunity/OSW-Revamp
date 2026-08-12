@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate.ts"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "seed:forum": "tsx scripts/seed-forum.ts"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.4",

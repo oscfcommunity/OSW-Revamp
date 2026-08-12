@@ -1,40 +1,38 @@
 ---
-import { actions } from 'astro:actions';
-import { CONTENT_SOURCE } from 'astro:env/server';
+import { CONTENT_SOURCE, STRAPI_URL } from 'astro:env/server';
 import { count } from 'drizzle-orm';
 
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { db } from '../../db';
-import { event, job, submission } from '../../db/schema/content';
+import { submission } from '../../db/schema/content';
 import { user } from '../../db/schema/auth';
-import { forumThread } from '../../db/schema/forum';
-import { isAdmin } from '../../lib/guards';
+import { forumPost, forumReport, forumThread } from '../../db/schema/forum';
+import { ExternalLink } from 'lucide-astro';
 
-const result = Astro.getActionResult(actions.admin.importFromSheets);
-
-const [events, jobs, users, threads, submissions] = await Promise.all([
-  db.select({ value: count() }).from(event),
-  db.select({ value: count() }).from(job),
+const [users, threads, posts, reports, submissions] = await Promise.all([
   db.select({ value: count() }).from(user),
   db.select({ value: count() }).from(forumThread),
+  db.select({ value: count() }).from(forumPost),
+  db.select({ value: count() }).from(forumReport),
   db.select({ value: count() }).from(submission),
 ]);
 
 const stats = [
-  { label: 'Events', value: events[0]?.value ?? 0, href: '/admin/events' },
-  { label: 'Jobs', value: jobs[0]?.value ?? 0, href: '/admin/jobs' },
   { label: 'Members', value: users[0]?.value ?? 0, href: '/admin/users' },
   { label: 'Threads', value: threads[0]?.value ?? 0, href: '/forum' },
+  { label: 'Posts', value: posts[0]?.value ?? 0, href: '/forum' },
+  { label: 'Open reports', value: reports[0]?.value ?? 0, href: '/admin' },
   { label: 'Submissions', value: submissions[0]?.value ?? 0, href: '/admin' },
 ] as const;
 
-const canImport = isAdmin(Astro.locals.viewer);
+// The CMS is a separate application; link to it rather than duplicating it.
+const cmsUrl = STRAPI_URL ? `${STRAPI_URL.replace(/\/$/, '')}/admin` : '/admin-cms';
 ---
 
 <AdminLayout
   title="Admin | Open Source Weekend"
   heading="Dashboard"
-  description="Manage the content and the community."
+  description="Members, moderation and the forum."
 >
   <section class="grid grid-cols-2 gap-4 md:grid-cols-5">
     {
@@ -51,77 +49,29 @@ const canImport = isAdmin(Astro.locals.viewer);
   </section>
 
   <section class="bg-card border-border mt-8 rounded-xl border p-6">
-    <h2 class="text-lg font-bold">Content source</h2>
+    <h2 class="text-lg font-bold">Events and jobs</h2>
     <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-      The site is currently reading events and jobs from
+      Content is edited in the Strapi CMS, not here. The site is currently reading events and jobs
+      from
       <strong class="text-foreground">
-        {CONTENT_SOURCE === 'db' ? 'the database' : 'the Google Sheets'}
-      </strong>. Import the sheets into the database first, check the pages look right, then set
-      <code class="bg-muted mx-1 rounded px-1.5 py-0.5 text-xs">CONTENT_SOURCE=db</code> in
-      <code class="bg-muted rounded px-1.5 py-0.5 text-xs">.env</code> and restart.
+        {CONTENT_SOURCE === 'strapi' ? 'the CMS' : 'the Google Sheets'}
+      </strong>.
+      {
+        CONTENT_SOURCE !== 'strapi' && (
+          <>
+            {' '}
+            Once the CMS is populated, set
+            <code class="bg-muted mx-1 rounded px-1.5 py-0.5 text-xs">CONTENT_SOURCE=strapi</code>
+            and restart.
+          </>
+        )
+      }
     </p>
-
-    {
-      canImport && (
-        <div class="mt-5 flex flex-wrap gap-3">
-          <form method="POST" action={actions.admin.importFromSheets}>
-            <input type="hidden" name="dryRun" value="true" />
-            <button
-              type="submit"
-              class="border-border hover:bg-accent h-10 rounded-lg border px-4 text-sm font-bold"
-            >
-              Dry run
-            </button>
-          </form>
-          <form method="POST" action={actions.admin.importFromSheets}>
-            <button
-              type="submit"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-lg px-4 text-sm font-bold"
-            >
-              Import from Google Sheets
-            </button>
-          </form>
-        </div>
-      )
-    }
-
-    {
-      result?.error && (
-        <p class="border-destructive/20 bg-destructive/10 text-destructive mt-5 rounded-lg border px-4 py-3 text-sm">
-          {result.error.message}
-        </p>
-      )
-    }
-
-    {
-      result?.data && (
-        <div class="border-border bg-muted/30 mt-5 space-y-2 rounded-lg border p-4 text-sm">
-          <p class="font-bold">
-            {result.data.dryRun ? 'Dry run — nothing was written' : 'Import complete'}
-          </p>
-          <p>
-            Events: {result.data.events.inserted} added, {result.data.events.updated} updated,{' '}
-            {result.data.events.skipped} skipped
-          </p>
-          <p>
-            Jobs: {result.data.jobs.inserted} added, {result.data.jobs.updated} updated,{' '}
-            {result.data.jobs.skipped} skipped
-          </p>
-          {[...result.data.events.skippedReasons, ...result.data.jobs.skippedReasons].length >
-            0 && (
-            <details>
-              <summary class="cursor-pointer font-medium">Skipped rows</summary>
-              <ul class="text-muted-foreground mt-2 list-disc space-y-1 pl-5 text-xs">
-                {[...result.data.events.skippedReasons, ...result.data.jobs.skippedReasons].map(
-                  (reason) => (
-                    <li>{reason}</li>
-                  ),
-                )}
-              </ul>
-            </details>
-          )}
-        </div>
-      )
-    }
+    <a
+      href={cmsUrl}
+      class="text-primary mt-4 inline-flex items-center gap-1.5 text-sm font-semibold"
+    >
+      Open the CMS <ExternalLink class="size-3.5" />
+    </a>
   </section>
 </AdminLayout>

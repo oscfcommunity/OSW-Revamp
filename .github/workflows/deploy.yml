@@ -36,14 +36,26 @@ jobs:
             # .env lives on the server (chmod 600) and is never committed.
             test -f .env || { echo "missing /var/www/osw/.env"; exit 1; }
 
-            # Back up before any migration runs, so a bad migration is recoverable.
-            mkdir -p /var/backups/osw
-            docker compose exec -T db pg_dump -U osw -Fc osw \
-              | gzip > "/var/backups/osw/pre-deploy-$(date +%F-%H%M).dump.gz" || \
-              echo "no database yet, skipping pre-deploy backup"
+            # The Strapi CMS and its database run under the separate compose
+            # project "osw". Everything below is scoped to "osw-app" and must
+            # never be given --remove-orphans, which would delete them.
+            COMPOSE="docker compose -p osw-app"
 
-            docker compose build
-            docker compose run --rm migrate
-            docker compose up -d --remove-orphans
-            docker compose ps
+            # Back up the application database before migrations run.
+            mkdir -p /var/backups/osw
+            docker exec -t osw_db pg_dump -U osw -Fc "${APP_DB_NAME:-osw_app}" \
+              | gzip > "/var/backups/osw/app-pre-deploy-$(date +%F-%H%M).dump.gz" \
+              || echo "no application database yet, skipping pre-deploy backup"
+
+            $COMPOSE build
+
+            # The legacy container was started with `docker run` and binds the
+            # same host port, so it has to go before the compose app can bind it.
+            if docker ps --format '{{.Names}}' | grep -qx osw; then
+              docker stop osw && docker rm osw
+            fi
+
+            $COMPOSE run --rm migrate
+            $COMPOSE up -d
+            $COMPOSE ps
             docker image prune -f

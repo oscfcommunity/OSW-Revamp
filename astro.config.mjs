@@ -18,7 +18,7 @@ export default defineConfig({
 
   env: {
     schema: {
-      // Content sources (retired once CONTENT_SOURCE flips to 'db')
+      // Content sources (the sheets are retired once CONTENT_SOURCE flips to 'strapi')
       GOOGLE_EVENTS_SHEET_URL: envField.string({
         context: 'server',
         access: 'secret',
@@ -35,9 +35,13 @@ export default defineConfig({
       CONTENT_SOURCE: envField.enum({
         context: 'server',
         access: 'secret',
-        values: ['sheet', 'db'],
+        values: ['sheet', 'strapi'],
         default: 'sheet',
       }),
+
+      // Strapi CMS — the source of truth for events and jobs
+      STRAPI_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      STRAPI_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
 
       // Database
       DATABASE_URL: envField.string({ context: 'server', access: 'secret', optional: true }),

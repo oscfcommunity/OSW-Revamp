@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1786516810454,
+      "when": 1786533001305,
       "tag": "0000_init",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1786516818940,
-      "tag": "0001_search_tsvector",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1786517757748,
-      "tag": "0002_attendance_mode",
       "breakpoints": true
     }
   ]

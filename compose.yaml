@@ -1,20 +1,27 @@
+# The Strapi CMS and its Postgres already run on this host under the compose
+# project "osw" (working dir /var/www/osw). This file deliberately uses a
+# DIFFERENT project name and defines NO database service, so it can never adopt,
+# recreate or remove those containers. Never run it with --remove-orphans.
+name: osw-app
+
 services:
   app:
     build: .
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@db:5432/osw
+      # Reuses the existing Postgres container (osw_db) with a separate database
+      # for the application's own tables: accounts, sessions and the forum.
+      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@osw_db:5432/${APP_DB_NAME:-osw_app}
       HOST: 0.0.0.0
       PORT: 4321
       NODE_ENV: production
-    # Loopback only: nginx or Caddy terminates TLS in front of it. OAuth and
-    # secure cookies both require HTTPS, so the app is never exposed directly.
+    # Loopback only: nginx terminates TLS and proxies to this.
     ports:
       - '127.0.0.1:3000:4321'
+    networks:
+      - osw
     depends_on:
-      db:
-        condition: service_healthy
       migrate:
         condition: service_completed_successfully
 
@@ -23,27 +30,13 @@ services:
     command: ['npx', 'tsx', 'scripts/migrate.ts']
     env_file: .env
     environment:
-      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@db:5432/osw
-    depends_on:
-      db:
-        condition: service_healthy
+      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@osw_db:5432/${APP_DB_NAME:-osw_app}
+    networks:
+      - osw
     restart: 'no'
 
-  db:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: osw
-      POSTGRES_DB: osw
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U osw']
-      interval: 5s
-      retries: 10
-    # Deliberately no published ports: the database is only reachable on the
-    # compose network.
-
-volumes:
-  pgdata:
+networks:
+  # Created by the existing Strapi stack; joined, never managed, from here.
+  osw:
+    name: osw_osw
+    external: true

@@ -1,6 +1,6 @@
 ---
 import Layout from './Layout.astro';
-import { Briefcase, CalendarDays, LayoutDashboard, Users } from 'lucide-astro';
+import { LayoutDashboard, Users } from 'lucide-astro';
 
 interface Props {
   title: string;
@@ -13,9 +13,7 @@ const { pathname } = Astro.url;
 
 const links = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/events', label: 'Events', icon: CalendarDays },
-  { href: '/admin/jobs', label: 'Jobs', icon: Briefcase },
-  { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/users', label: 'Members', icon: Users },
 ] as const;
 
 const isActive = (href: string): boolean =>

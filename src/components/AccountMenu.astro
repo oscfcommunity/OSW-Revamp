@@ -1,0 +1,98 @@
+---
+import { LayoutDashboard, LogOut, User } from 'lucide-astro';
+import { canModerate } from '../lib/guards';
+
+const { user, viewer } = Astro.locals;
+const showAdmin = canModerate(viewer);
+const initial = (user?.name ?? user?.email ?? '?').trim().charAt(0).toUpperCase();
+---
+
+{
+  user ? (
+    <div class="relative" data-account-menu>
+      <button
+        type="button"
+        data-account-trigger
+        aria-haspopup="menu"
+        aria-expanded="false"
+        class="border-border hover:border-primary flex items-center gap-2 rounded-full border p-1 pr-3 transition-colors"
+      >
+        {user.image ? (
+          <img src={user.image} alt="" class="size-8 rounded-full object-cover" />
+        ) : (
+          <span class="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full text-sm font-bold">
+            {initial}
+          </span>
+        )}
+        <span class="max-w-24 truncate text-sm font-medium">{user.name || user.email}</span>
+      </button>
+
+      <div
+        data-account-panel
+        role="menu"
+        class="border-border bg-card absolute right-0 z-50 mt-2 hidden w-52 rounded-xl border p-1.5 shadow-lg"
+      >
+        <a
+          href="/settings"
+          role="menuitem"
+          class="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
+        >
+          <User class="size-4" /> Your profile
+        </a>
+        {showAdmin && (
+          <a
+            href="/admin"
+            role="menuitem"
+            class="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
+          >
+            <LayoutDashboard class="size-4" /> Admin
+          </a>
+        )}
+        <form method="POST" action="/logout" class="border-border/60 mt-1 border-t pt-1">
+          <button
+            type="submit"
+            role="menuitem"
+            class="hover:bg-accent flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm"
+          >
+            <LogOut class="size-4" /> Sign out
+          </button>
+        </form>
+      </div>
+    </div>
+  ) : (
+    <a
+      href="/login"
+      class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center rounded-lg px-4 text-sm font-bold transition-colors"
+    >
+      Sign in
+    </a>
+  )
+}
+
+<script>
+  // The layout renders one menu for the desktop nav and one for the mobile drawer,
+  // so every instance has to be bound, not just the first.
+  document.querySelectorAll<HTMLElement>('[data-account-menu]').forEach((menu) => {
+    const trigger = menu.querySelector<HTMLButtonElement>('[data-account-trigger]');
+    const panel = menu.querySelector<HTMLElement>('[data-account-panel]');
+    if (!trigger || !panel) return;
+
+    const setOpen = (open: boolean) => {
+      panel.classList.toggle('hidden', !open);
+      trigger.setAttribute('aria-expanded', String(open));
+    };
+
+    trigger.addEventListener('click', (clickEvent) => {
+      clickEvent.stopPropagation();
+      setOpen(panel.classList.contains('hidden'));
+    });
+
+    document.addEventListener('click', (clickEvent) => {
+      if (!menu.contains(clickEvent.target as Node)) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (keyEvent) => {
+      if (keyEvent.key === 'Escape') setOpen(false);
+    });
+  });
+</script>

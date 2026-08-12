@@ -1,0 +1,60 @@
+---
+import Layout from './Layout.astro';
+import { Briefcase, CalendarDays, LayoutDashboard, Users } from 'lucide-astro';
+
+interface Props {
+  title: string;
+  heading: string;
+  description?: string;
+}
+
+const { title, heading, description } = Astro.props;
+const { pathname } = Astro.url;
+
+const links = [
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/events', label: 'Events', icon: CalendarDays },
+  { href: '/admin/jobs', label: 'Jobs', icon: Briefcase },
+  { href: '/admin/users', label: 'Users', icon: Users },
+] as const;
+
+const isActive = (href: string): boolean =>
+  href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+---
+
+<Layout title={title} description={description ?? heading}>
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-[200px_1fr]">
+    <nav class="md:sticky md:top-28 md:self-start">
+      <p class="text-muted-foreground mb-3 text-xs font-bold tracking-widest uppercase">Admin</p>
+      <ul class="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                class:list={[
+                  'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+                  isActive(link.href)
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-accent',
+                ]}
+              >
+                <link.icon class="size-4" />
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="min-w-0">
+      <header class="mb-8">
+        <h1 class="font-['Outfit'] text-3xl font-extrabold tracking-tight">{heading}</h1>
+        {description && <p class="text-muted-foreground mt-2">{description}</p>}
+      </header>
+      <slot />
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,217 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { availableProviders, emailPasswordEnabled } from '../lib/auth';
+import { Github, Mail } from 'lucide-astro';
+
+if (Astro.locals.viewer) {
+  return Astro.redirect('/');
+}
+
+const nextParam = Astro.url.searchParams.get('next');
+const next =
+  nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/';
+const error = Astro.url.searchParams.get('error');
+const noProviders = !availableProviders.google && !availableProviders.github;
+---
+
+<Layout
+  title="Sign in | Open Source Weekend"
+  description="Sign in to join the Open Source Weekend community."
+>
+  <div class="mx-auto flex max-w-md flex-col px-4 py-20">
+    <h1 class="font-['Outfit'] text-3xl font-extrabold tracking-tight">Sign in</h1>
+    <p class="text-muted-foreground mt-3 leading-relaxed">
+      Join the conversation, RSVP to meetups and submit events to the community.
+    </p>
+
+    {
+      error && (
+        <p class="border-destructive/20 bg-destructive/10 text-destructive mt-6 rounded-lg border px-4 py-3 text-sm">
+          Sign in failed. Please try again.
+        </p>
+      )
+    }
+
+    <div class="mt-8 space-y-3">
+      {
+        availableProviders.google && (
+          <button
+            type="button"
+            data-provider="google"
+            class="border-border bg-card hover:bg-accent flex h-12 w-full items-center justify-center gap-3 rounded-xl border font-semibold transition-colors"
+          >
+            <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="#4285F4"
+                d="M21.6 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.89-1.74 2.98-4.3 2.98-7.33Z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 22c2.7 0 4.96-.9 6.62-2.44l-3.24-2.5c-.9.6-2.04.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22Z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M6.41 13.9a6 6 0 0 1 0-3.8V7.51H3.06a10 10 0 0 0 0 8.98l3.35-2.6Z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 5.98c1.47 0 2.79.51 3.83 1.5l2.87-2.87C16.95 2.99 14.7 2 12 2a10 10 0 0 0-8.94 5.51l3.35 2.6C7.2 7.74 9.4 5.98 12 5.98Z"
+              />
+            </svg>
+            Continue with Google
+          </button>
+        )
+      }
+
+      {
+        availableProviders.github && (
+          <button
+            type="button"
+            data-provider="github"
+            class="border-border bg-card hover:bg-accent flex h-12 w-full items-center justify-center gap-3 rounded-xl border font-semibold transition-colors"
+          >
+            <Github class="size-5" />
+            Continue with GitHub
+          </button>
+        )
+      }
+
+      {
+        noProviders && (
+          <p class="border-border bg-muted/40 text-muted-foreground rounded-lg border px-4 py-3 text-sm">
+            No OAuth providers are configured yet. Add GOOGLE_CLIENT_ID / GITHUB_CLIENT_ID to
+            <code class="mx-1">.env</code>
+            to enable them.
+          </p>
+        )
+      }
+    </div>
+
+    {
+      emailPasswordEnabled && (
+        <details class="border-border mt-8 rounded-xl border p-5" open={noProviders}>
+          <summary class="flex cursor-pointer items-center gap-2 text-sm font-semibold">
+            <Mail class="size-4" /> Development sign in
+          </summary>
+          <p class="text-muted-foreground mt-3 text-xs leading-relaxed">
+            Email and password sign in is available in development only, so the site can be worked
+            on before OAuth clients exist.
+          </p>
+          <form id="dev-login" class="mt-4 space-y-3">
+            <label class="block text-sm">
+              <span class="mb-1 block font-medium">Name (sign up only)</span>
+              <input
+                name="name"
+                type="text"
+                autocomplete="name"
+                class="border-border bg-background h-11 w-full rounded-lg border px-3"
+              />
+            </label>
+            <label class="block text-sm">
+              <span class="mb-1 block font-medium">Email</span>
+              <input
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                class="border-border bg-background h-11 w-full rounded-lg border px-3"
+              />
+            </label>
+            <label class="block text-sm">
+              <span class="mb-1 block font-medium">Password</span>
+              <input
+                name="password"
+                type="password"
+                required
+                minlength="8"
+                autocomplete="current-password"
+                class="border-border bg-background h-11 w-full rounded-lg border px-3"
+              />
+            </label>
+            <div class="flex gap-3">
+              <button
+                type="submit"
+                value="sign-in"
+                name="intent"
+                class="bg-primary text-primary-foreground h-11 flex-1 rounded-lg font-bold"
+              >
+                Sign in
+              </button>
+              <button
+                type="submit"
+                value="sign-up"
+                name="intent"
+                class="border-border h-11 flex-1 rounded-lg border font-bold"
+              >
+                Sign up
+              </button>
+            </div>
+            <p data-dev-error class="text-destructive hidden text-sm" />
+          </form>
+        </details>
+      )
+    }
+  </div>
+</Layout>
+
+<script define:vars={{ next }}>
+  const post = async (path, body) => {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      throw new Error(detail.message ?? 'Request failed');
+    }
+    return response.json();
+  };
+
+  document.querySelectorAll('[data-provider]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const provider = button.dataset.provider;
+      try {
+        const data = await post('/api/auth/sign-in/social', {
+          provider,
+          callbackURL: next,
+          errorCallbackURL: '/login?error=oauth',
+        });
+        if (data.url) {
+          window.location.href = data.url;
+        }
+      } catch {
+        window.location.href = '/login?error=oauth';
+      }
+    });
+  });
+
+  const form = document.querySelector('#dev-login');
+  form?.addEventListener('submit', async (submitEvent) => {
+    submitEvent.preventDefault();
+    const formData = new FormData(form);
+    const intent = submitEvent.submitter?.value ?? 'sign-in';
+    const errorBox = form.querySelector('[data-dev-error]');
+    errorBox.classList.add('hidden');
+
+    const payload = {
+      email: String(formData.get('email')),
+      password: String(formData.get('password')),
+    };
+
+    try {
+      if (intent === 'sign-up') {
+        await post('/api/auth/sign-up/email', {
+          ...payload,
+          name: String(formData.get('name') || formData.get('email')),
+        });
+      } else {
+        await post('/api/auth/sign-in/email', payload);
+      }
+      window.location.href = next;
+    } catch (error) {
+      errorBox.textContent = error instanceof Error ? error.message : 'Sign in failed';
+      errorBox.classList.remove('hidden');
+    }
+  });
+</script>

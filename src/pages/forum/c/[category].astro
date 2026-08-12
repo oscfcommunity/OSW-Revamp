@@ -1,0 +1,86 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ThreadRow from '../../../components/forum/ThreadRow.astro';
+import { db } from '../../../db';
+import { getCategory, listThreads } from '../../../lib/forum/repo';
+import { canModerate } from '../../../lib/guards';
+import { ChevronLeft, Plus } from 'lucide-astro';
+
+const { category: categorySlug } = Astro.params;
+const category = categorySlug ? await getCategory(db, categorySlug) : undefined;
+
+if (!category) {
+  return Astro.rewrite('/404');
+}
+
+const page = Number(Astro.url.searchParams.get('page') ?? '1') || 1;
+const { threads, pageCount, totalCount } = await listThreads(db, {
+  categoryId: category.id,
+  page,
+  includeHidden: canModerate(Astro.locals.viewer),
+});
+---
+
+<Layout
+  title={`${category.name} | Forum | Open Source Weekend`}
+  description={category.description ?? `${category.name} discussions.`}
+>
+  <div class="mx-auto max-w-4xl space-y-6 px-4 py-10">
+    <a
+      href="/forum"
+      class="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
+    >
+      <ChevronLeft class="size-4" /> All categories
+    </a>
+
+    <header class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="font-['Outfit'] text-3xl font-extrabold tracking-tight">{category.name}</h1>
+        <p class="text-muted-foreground mt-2">
+          {category.description} · {totalCount} thread{totalCount === 1 ? '' : 's'}
+        </p>
+      </div>
+      <a
+        href={`/forum/new?c=${category.slug}`}
+        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold"
+      >
+        <Plus class="size-4" /> New thread
+      </a>
+    </header>
+
+    {
+      threads.length === 0 ? (
+        <p class="border-border text-muted-foreground rounded-xl border border-dashed p-12 text-center">
+          Nothing here yet. Start the first thread.
+        </p>
+      ) : (
+        <div class="bg-card border-border overflow-hidden rounded-xl border">
+          {threads.map((thread) => (
+            <ThreadRow thread={thread} />
+          ))}
+        </div>
+      )
+    }
+
+    {
+      pageCount > 1 && (
+        <nav class="flex items-center justify-center gap-2" aria-label="Pagination">
+          {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => (
+            <a
+              href={`/forum/c/${category.slug}?page=${number}`}
+              aria-current={number === page ? 'page' : undefined}
+              class:list={[
+                'rounded-lg px-3 py-1.5 text-sm font-semibold',
+                number === page
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border-border hover:bg-accent border',
+              ]}
+            >
+              {number}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+  </div>
+</Layout>

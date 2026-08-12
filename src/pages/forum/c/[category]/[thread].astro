@@ -1,0 +1,346 @@
+---
+import { actions } from 'astro:actions';
+
+import Layout from '../../../../layouts/Layout.astro';
+import { db } from '../../../../db';
+import { getThread, incrementViewCount, listPosts } from '../../../../lib/forum/repo';
+import { canModerate } from '../../../../lib/guards';
+import { ChevronLeft, Lock, Pin, ShieldAlert, Trash2 } from 'lucide-astro';
+
+const { category: categorySlug, thread: threadSlugParam } = Astro.params;
+
+const thread =
+  categorySlug && threadSlugParam ? await getThread(db, categorySlug, threadSlugParam) : undefined;
+
+if (!thread) {
+  return Astro.rewrite('/404');
+}
+
+const viewer = Astro.locals.viewer;
+const isModerator = canModerate(viewer);
+
+if (thread.status !== 'visible' && !isModerator) {
+  return Astro.rewrite('/404');
+}
+
+const replyResult = Astro.getActionResult(actions.forum.reply);
+const reportResult = Astro.getActionResult(actions.forum.report);
+
+// Post-Redirect-Get: a successful reply must not be resubmitted on refresh.
+if (replyResult && !replyResult.error) {
+  return Astro.redirect(`${replyResult.data.url}#latest`, 303);
+}
+if (reportResult && !reportResult.error) {
+  return Astro.redirect(`${reportResult.data.url}?reported=1`, 303);
+}
+
+const page = Number(Astro.url.searchParams.get('page') ?? '1') || 1;
+const { posts, pageCount } = await listPosts(db, thread.id, {
+  page,
+  viewerId: viewer?.id,
+  includeHidden: isModerator,
+});
+
+if (page === 1) {
+  await incrementViewCount(db, thread.id);
+}
+
+const path = `/forum/c/${thread.categorySlug}/${thread.slug}`;
+const reported = Astro.url.searchParams.get('reported') === '1';
+
+const formatDate = (date: Date): string =>
+  date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+---
+
+<Layout title={`${thread.title} | Forum`} description={`Discussion: ${thread.title}`}>
+  <div class="mx-auto max-w-3xl space-y-6 px-4 py-10">
+    <a
+      href={`/forum/c/${thread.categorySlug}`}
+      class="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
+    >
+      <ChevronLeft class="size-4" />
+      {thread.categoryName}
+    </a>
+
+    <header class="space-y-3">
+      <h1 class="font-['Outfit'] text-3xl font-extrabold tracking-tight">
+        {thread.isPinned && <Pin class="text-primary mr-2 inline size-5" />}
+        {thread.title}
+      </h1>
+      <p class="text-muted-foreground text-sm">
+        Started by {thread.authorName ?? 'a deleted member'} · {thread.replyCount} repl{
+          thread.replyCount === 1 ? 'y' : 'ies'
+        }
+        {thread.isLocked && <span class="text-muted-foreground"> · locked</span>}
+        {
+          thread.status !== 'visible' && (
+            <span class="text-destructive"> · {thread.status} (visible to moderators)</span>
+          )
+        }
+      </p>
+    </header>
+
+    {
+      reported && (
+        <p class="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">
+          Thanks — the moderators have been notified.
+        </p>
+      )
+    }
+
+    {
+      isModerator && (
+        <div class="border-border bg-muted/30 flex flex-wrap items-center gap-3 rounded-xl border p-3 text-xs">
+          <span class="text-muted-foreground font-bold tracking-wider uppercase">Moderator</span>
+          <form method="POST" action={actions.forum.moderateThread}>
+            <input type="hidden" name="threadId" value={thread.id} />
+            <input type="hidden" name="redirectTo" value={path} />
+            <input type="hidden" name="pin" value={String(!thread.isPinned)} />
+            <button type="submit" class="hover:text-primary font-semibold">
+              {thread.isPinned ? 'Unpin' : 'Pin'}
+            </button>
+          </form>
+          <form method="POST" action={actions.forum.moderateThread}>
+            <input type="hidden" name="threadId" value={thread.id} />
+            <input type="hidden" name="redirectTo" value={path} />
+            <input type="hidden" name="lock" value={String(!thread.isLocked)} />
+            <button type="submit" class="hover:text-primary font-semibold">
+              {thread.isLocked ? 'Unlock' : 'Lock'}
+            </button>
+          </form>
+        </div>
+      )
+    }
+
+    <div class="space-y-4">
+      {
+        posts.map((post) => (
+          <article
+            id={`post-${post.id}`}
+            class:list={[
+              'bg-card border-border rounded-xl border p-5',
+              post.status !== 'visible' && 'opacity-60',
+            ]}
+          >
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                {post.authorImage ? (
+                  <img src={post.authorImage} alt="" class="size-8 rounded-full object-cover" />
+                ) : (
+                  <span class="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full text-xs font-bold">
+                    {(post.authorName ?? '?').charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div>
+                  <p class="text-sm font-semibold">
+                    {post.authorName ?? 'Deleted member'}
+                    {post.authorRole && post.authorRole !== 'user' && (
+                      <span class="bg-primary/10 text-primary ml-2 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                        {post.authorRole}
+                      </span>
+                    )}
+                  </p>
+                  <p class="text-muted-foreground text-xs">
+                    {formatDate(post.createdAt)}
+                    {post.status !== 'visible' && ` · ${post.status}`}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1" data-vote-group data-post-id={post.id}>
+                <button
+                  type="button"
+                  data-vote="1"
+                  aria-label="Upvote"
+                  class:list={[
+                    'hover:bg-accent rounded px-2 py-1 text-sm',
+                    post.viewerVote === 1 && 'text-primary font-bold',
+                  ]}
+                >
+                  ▲
+                </button>
+                <span data-vote-score class="min-w-6 text-center text-sm font-bold">
+                  {post.voteScore}
+                </span>
+                <button
+                  type="button"
+                  data-vote="-1"
+                  aria-label="Downvote"
+                  class:list={[
+                    'hover:bg-accent rounded px-2 py-1 text-sm',
+                    post.viewerVote === -1 && 'text-destructive font-bold',
+                  ]}
+                >
+                  ▼
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="prose prose-sm dark:prose-invert prose-a:text-primary max-w-none"
+              set:html={post.bodyHtml}
+            />
+
+            <div class="text-muted-foreground mt-4 flex items-center gap-4 text-xs">
+              {viewer && (
+                <details>
+                  <summary class="hover:text-destructive flex cursor-pointer items-center gap-1">
+                    <ShieldAlert class="size-3.5" /> Report
+                  </summary>
+                  <form
+                    method="POST"
+                    action={actions.forum.report}
+                    class="border-border mt-2 flex flex-wrap items-center gap-2 rounded-lg border p-3"
+                  >
+                    <input type="hidden" name="postId" value={post.id} />
+                    <input type="hidden" name="redirectTo" value={path} />
+                    <select
+                      name="reason"
+                      class="border-border bg-background rounded border px-2 py-1"
+                    >
+                      <option value="spam">Spam</option>
+                      <option value="abuse">Abuse</option>
+                      <option value="offtopic">Off topic</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <input
+                      type="text"
+                      name="detail"
+                      placeholder="Anything to add?"
+                      class="border-border bg-background flex-1 rounded border px-2 py-1"
+                    />
+                    <button type="submit" class="text-primary font-semibold">
+                      Send
+                    </button>
+                  </form>
+                </details>
+              )}
+
+              {isModerator && (
+                <form method="POST" action={actions.forum.moderatePost}>
+                  <input type="hidden" name="postId" value={post.id} />
+                  <input type="hidden" name="redirectTo" value={path} />
+                  <input
+                    type="hidden"
+                    name="status"
+                    value={post.status === 'visible' ? 'hidden' : 'visible'}
+                  />
+                  <button type="submit" class="hover:text-destructive flex items-center gap-1">
+                    <Trash2 class="size-3.5" />
+                    {post.status === 'visible' ? 'Hide' : 'Restore'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    {
+      pageCount > 1 && (
+        <nav class="flex items-center justify-center gap-2" aria-label="Pagination">
+          {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => (
+            <a
+              href={`${path}?page=${number}`}
+              aria-current={number === page ? 'page' : undefined}
+              class:list={[
+                'rounded-lg px-3 py-1.5 text-sm font-semibold',
+                number === page
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border-border hover:bg-accent border',
+              ]}
+            >
+              {number}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+
+    <div id="latest"></div>
+
+    {
+      thread.isLocked && !isModerator ? (
+        <p class="border-border text-muted-foreground flex items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-sm">
+          <Lock class="size-4" /> This thread is locked.
+        </p>
+      ) : viewer ? (
+        <form
+          method="POST"
+          action={actions.forum.reply}
+          class="bg-card border-border space-y-3 rounded-xl border p-5"
+        >
+          <h2 class="font-bold">Reply</h2>
+          {replyResult?.error && (
+            <p class="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm">
+              {replyResult.error.message}
+            </p>
+          )}
+          <input type="hidden" name="threadId" value={thread.id} />
+          <input type="hidden" name="redirectTo" value={path} />
+          <textarea
+            name="body"
+            rows="5"
+            required
+            minlength="2"
+            placeholder="Markdown is supported."
+            class="border-border bg-background w-full rounded-lg border px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-lg px-5 text-sm font-bold"
+          >
+            Post reply
+          </button>
+        </form>
+      ) : (
+        <p class="border-border rounded-xl border border-dashed p-6 text-center text-sm">
+          <a href={`/login?next=${encodeURIComponent(path)}`} class="text-primary font-semibold">
+            Sign in
+          </a>{' '}
+          to join the conversation.
+        </p>
+      )
+    }
+  </div>
+</Layout>
+
+<script>
+  import { actions } from 'astro:actions';
+
+  // Voting is the one genuinely optimistic interaction here; everything else is a
+  // plain form that works without JavaScript.
+  document.querySelectorAll<HTMLElement>('[data-vote-group]').forEach((group) => {
+    const postId = group.dataset.postId;
+    const score = group.querySelector<HTMLElement>('[data-vote-score]');
+    if (!postId || !score) return;
+
+    group.querySelectorAll<HTMLButtonElement>('[data-vote]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const value = Number(button.dataset.vote) === -1 ? -1 : 1;
+        const { data, error } = await actions.forum.vote({ postId, value });
+
+        if (error) {
+          button.title = error.message;
+          button.animate([{ opacity: 1 }, { opacity: 0.3 }, { opacity: 1 }], { duration: 400 });
+          return;
+        }
+
+        score.textContent = String(data.score);
+        group.querySelectorAll<HTMLButtonElement>('[data-vote]').forEach((other) => {
+          const otherValue = Number(other.dataset.vote) === -1 ? -1 : 1;
+          other.classList.toggle('font-bold', data.viewerVote === otherValue);
+          other.classList.toggle(
+            'text-primary',
+            data.viewerVote === otherValue && otherValue === 1,
+          );
+          other.classList.toggle(
+            'text-destructive',
+            data.viewerVote === otherValue && otherValue === -1,
+          );
+        });
+      });
+    });
+  });
+</script>

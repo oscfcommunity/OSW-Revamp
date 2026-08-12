@@ -12,53 +12,61 @@ const now = new Date();
 // Helper: Check if event is strictly past (EndDate + 1 day buffer < Now)
 const isPast = (endDate: string) => {
   const end = new Date(endDate);
-  end.setDate(end.getDate() + 1); 
+  end.setDate(end.getDate() + 1);
   return end < now;
 };
 
 // Sort Upcoming: Ascending (Soonest first)
 const upcomingEvents = events
-    .filter(e => !isPast(e.endDate))
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+  .filter((e) => !isPast(e.endDate))
+  .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
 // Sort Past: Descending (Most Recent first)
 const pastEvents = events
-    .filter(e => isPast(e.endDate))
-    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  .filter((e) => isPast(e.endDate))
+  .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 
 // Helper: Group events by Month Year
 const groupEventsByMonth = (events: Event[]) => {
-    const groups: { [key: string]: Event[] } = {};
-    events.forEach(event => {
-        const date = new Date(event.startDate);
-        const key = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        if (!groups[key]) {
-            groups[key] = [];
-        }
-        groups[key].push(event);
-    });
-    return groups;
+  const groups: { [key: string]: Event[] } = {};
+  events.forEach((event) => {
+    const date = new Date(event.startDate);
+    const key = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(event);
+  });
+  return groups;
 };
 
 const pastGroups = groupEventsByMonth(pastEvents);
-const pastGroupKeys = Object.keys(pastGroups); 
+const pastGroupKeys = Object.keys(pastGroups);
 
 // Extract Unique Locations for Filter
-const allLocations = [...new Set(events.map(e => e.location || e.venue).filter(l => l && l !== 'TBA' && l !== 'Looking for venue' && l !== 'Online'))].sort();
+const isListableLocation = (location: string | undefined): location is string =>
+  location !== undefined &&
+  location !== '' &&
+  location !== 'TBA' &&
+  location !== 'Looking for venue' &&
+  location !== 'Online';
+
+const allLocations = [
+  ...new Set(events.map((e) => e.location || e.venue).filter(isListableLocation)),
+].sort();
 
 import EventFilter from '../../components/EventFilter.astro';
 ---
 
 <Layout title="Events - Open Source Weekend">
-  <div class="max-w-4xl mx-auto px-4 py-12 space-y-12">
-    
+  <div class="mx-auto max-w-4xl space-y-12 px-4 py-12">
     <!-- Hero Header -->
-    <header class="text-center space-y-6 py-8">
-      <h1 class="text-5xl font-extrabold tracking-tight font-['Outfit']">
+    <header class="space-y-6 py-8 text-center">
+      <h1 class="font-['Outfit'] text-5xl font-extrabold tracking-tight">
         Community <span class="text-primary">Timeline</span>
       </h1>
-      <p class="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-         Explore our journey. Join upcoming meetups or browse the archive of our shared history.
+      <p class="text-muted-foreground mx-auto max-w-2xl text-lg leading-relaxed">
+        Explore our journey. Join upcoming meetups or browse the archive of our shared history.
       </p>
     </header>
 
@@ -68,79 +76,84 @@ import EventFilter from '../../components/EventFilter.astro';
     <!-- Upcoming Events Section -->
     <section class="space-y-8">
       <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold font-['Outfit'] flex items-center gap-2">
-            🚀 Upcoming
-        </h2>
-        <div class="h-px bg-border flex-1"></div>
+        <h2 class="flex items-center gap-2 font-['Outfit'] text-2xl font-bold">🚀 Upcoming</h2>
+        <div class="bg-border h-px flex-1"></div>
       </div>
 
-      <div class="grid gap-6 grid-cols-1" id="upcoming-events-list">
-          {upcomingEvents.map(event => (
-            <div class="event-card-wrapper" 
-                 data-title={event.title} 
-                 data-community={event.community} 
-                 data-type={event.type} 
-                 data-location={event.location || event.venue}
-                 data-tags={event.tags?.join(',')}>
-                <EventCard event={event} />
+      <div class="grid grid-cols-1 gap-6" id="upcoming-events-list">
+        {
+          upcomingEvents.map((event) => (
+            <div
+              class="event-card-wrapper"
+              data-title={event.title}
+              data-community={event.community}
+              data-type={event.attendanceMode}
+              data-location={event.location || event.venue}
+              data-tags={event.tags?.join(',')}
+            >
+              <EventCard event={event} />
             </div>
-          ))}
-          {upcomingEvents.length === 0 && (
-             <p class="text-center text-muted-foreground py-10">No upcoming events scheduled at the moment.</p>
-          )}
+          ))
+        }
+        {
+          upcomingEvents.length === 0 && (
+            <p class="text-muted-foreground py-10 text-center">
+              No upcoming events scheduled at the moment.
+            </p>
+          )
+        }
       </div>
     </section>
 
     <!-- Timeline History -->
-    {pastEvents.length > 0 && (
-      <section class="space-y-12">
-        <div class="flex items-center gap-4">
-          <h2 class="text-2xl font-bold font-['Outfit'] flex items-center gap-2">
-              📜 Archive
-          </h2>
-          <div class="h-px bg-border flex-1"></div>
-        </div>
-
-        <div class="relative pl-8 md:pl-0">
-          <!-- Continuous Vertical Line -->
-          <div class="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-border -translate-x-1/2 hidden md:block"></div>
-          <div class="absolute left-0 top-0 bottom-0 w-px bg-border md:hidden"></div>
-
-          <div class="space-y-12">
-            {pastGroupKeys.map((monthKey, groupIndex) => (
-              <div class="relative month-group">
-                
-                <!-- Month Marker -->
-                <div class="flex md:justify-center items-center mb-8 relative">
-                   <div class="bg-background text-foreground border border-border px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm z-10 mx-4 md:mx-auto">
-                     {monthKey}
-                   </div>
-                </div>
-
-                <!-- Events in this Month -->
-                <div class="space-y-6">
-                    {pastGroups[monthKey].map((event, index) => (
-                        <div class="relative pl-8 md:pl-12 group event-card-wrapper"
-                             data-title={event.title} 
-                             data-community={event.community} 
-                             data-type={event.type} 
-                             data-location={event.location || event.venue}
-                             data-tags={event.tags?.join(',')}>
-                             
-                            <!-- Timeline Dot for Item -->
-                             <div class="absolute left-[-5px] md:left-[-5px] top-6 w-3 h-3 bg-primary/20 border-2 border-primary rounded-full z-10 
-                                group-hover:bg-primary group-hover:scale-125 transition-all duration-300"></div>
-                            
-                            <!-- Card (Full Width) -->
-                            <EventCard event={event} />
-                        </div>
-                    ))}
-                </div>
-              </div>
-            ))}
+    {
+      pastEvents.length > 0 && (
+        <section class="space-y-12">
+          <div class="flex items-center gap-4">
+            <h2 class="flex items-center gap-2 font-['Outfit'] text-2xl font-bold">📜 Archive</h2>
+            <div class="bg-border h-px flex-1" />
           </div>
-        </div>
-      </section>
-    )}
+
+          <div class="relative pl-8 md:pl-0">
+            {/* Continuous Vertical Line */}
+            <div class="bg-border absolute top-0 bottom-0 left-0 hidden w-px -translate-x-1/2 md:left-1/2 md:block" />
+            <div class="bg-border absolute top-0 bottom-0 left-0 w-px md:hidden" />
+
+            <div class="space-y-12">
+              {pastGroupKeys.map((monthKey, groupIndex) => (
+                <div class="month-group relative">
+                  {/* Month Marker */}
+                  <div class="relative mb-8 flex items-center md:justify-center">
+                    <div class="bg-background text-foreground border-border z-10 mx-4 rounded-full border px-4 py-1.5 text-sm font-semibold shadow-sm md:mx-auto">
+                      {monthKey}
+                    </div>
+                  </div>
+
+                  {/* Events in this Month */}
+                  <div class="space-y-6">
+                    {pastGroups[monthKey].map((event, index) => (
+                      <div
+                        class="group event-card-wrapper relative pl-8 md:pl-12"
+                        data-title={event.title}
+                        data-community={event.community}
+                        data-type={event.attendanceMode}
+                        data-location={event.location || event.venue}
+                        data-tags={event.tags?.join(',')}
+                      >
+                        {/* Timeline Dot for Item */}
+                        <div class="bg-primary/20 border-primary group-hover:bg-primary absolute top-6 left-[-5px] z-10 h-3 w-3 rounded-full border-2 transition-all duration-300 group-hover:scale-125 md:left-[-5px]" />
+
+                        {/* Card (Full Width) */}
+                        <EventCard event={event} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
   </div>
 </Layout>

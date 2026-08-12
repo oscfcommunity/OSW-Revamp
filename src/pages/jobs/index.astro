@@ -8,7 +8,7 @@ import { getJobs } from '../../lib/jobs';
 
 const allJobs = await getJobs();
 const sortedJobs = allJobs
-  // Logic: 
+  // Logic:
   // 1. Open Jobs first (status !== 'Closed')
   // 2. Featured Jobs first (within their status group)
   // 3. Newest Jobs first
@@ -22,22 +22,25 @@ const sortedJobs = allJobs
     // 2. Featured Priority
     if (a.featured && !b.featured) return -1;
     if (!a.featured && b.featured) return 1;
-  
+
     // 3. Date Priority
     const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
     const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
 
     return timeB - timeA;
-});
+  });
 ---
 
-<Layout title="TechJobs | Find Your Next Role">
-  <div class="max-w-6xl mx-auto px-4 py-12 space-y-8">
-    <section class="text-center py-8 space-y-4">
-      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+<Layout
+  title="Job Board | Open Source Weekend"
+  description="Open roles shared with the Open Source Weekend community."
+>
+  <div class="mx-auto max-w-6xl space-y-8 px-4 py-12">
+    <section class="space-y-4 py-8 text-center">
+      <h1 class="text-foreground text-4xl font-extrabold tracking-tight md:text-5xl">
         Find Your Next <span class="text-primary">Tech Opportunity</span>
       </h1>
-      <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+      <p class="text-muted-foreground mx-auto max-w-2xl text-xl">
         Discover the best remote and onsite roles in software engineering, design, and product.
       </p>
     </section>
@@ -46,18 +49,28 @@ const sortedJobs = allJobs
     <JobFilter />
 
     <section id="jobs-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {sortedJobs.map((job) => (
-        <JobCard job={job} />
-      ))}
+      {sortedJobs.map((job) => <JobCard job={job} />)}
     </section>
-    
+
     <!-- No Results State -->
-    <div id="no-results-message" class="hidden text-center py-12">
-        <div class="inline-flex items-center justify-center size-16 rounded-full bg-muted mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-8 text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        </div>
-        <h3 class="text-lg font-semibold text-foreground">No matching jobs found</h3>
-        <p class="text-muted-foreground">Try adjusting your search or filters.</p>
+    <div id="no-results-message" class="hidden py-12 text-center">
+      <div class="bg-muted mb-4 inline-flex size-16 items-center justify-center rounded-full">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-muted-foreground size-8"
+          ><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg
+        >
+      </div>
+      <h3 class="text-foreground text-lg font-semibold">No matching jobs found</h3>
+      <p class="text-muted-foreground">Try adjusting your search or filters.</p>
     </div>
   </div>
 </Layout>

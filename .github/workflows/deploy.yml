@@ -4,10 +4,14 @@ on:
   push:
     branches:
       - trunk
-  workflow_dispatch:      
+  workflow_dispatch:
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: ci
     runs-on: ubuntu-latest
 
     steps:
@@ -21,28 +25,25 @@ jobs:
           script: |
             set -e
 
-            # Clone if first time
             if [ ! -d "/var/www/osw/.git" ]; then
               git clone https://github.com/oscfcommunity/osweekend.git /var/www/osw
             fi
 
             cd /var/www/osw
-
-            # Pull latest code (hard reset to always match remote)
             git fetch origin trunk
             git reset --hard origin/trunk
 
-            # Build Docker image
-            docker build -t osw .
+            # .env lives on the server (chmod 600) and is never committed.
+            test -f .env || { echo "missing /var/www/osw/.env"; exit 1; }
 
-            # Restart container
-            docker stop osw || true
-            docker rm osw || true
+            # Back up before any migration runs, so a bad migration is recoverable.
+            mkdir -p /var/backups/osw
+            docker compose exec -T db pg_dump -U osw -Fc osw \
+              | gzip > "/var/backups/osw/pre-deploy-$(date +%F-%H%M).dump.gz" || \
+              echo "no database yet, skipping pre-deploy backup"
 
-            docker run -d \
-              --name osw \
-              -p 3000:4321 \
-              -e HOST=0.0.0.0 \
-              -e PORT=4321 \
-              --restart unless-stopped \
-              osw
+            docker compose build
+            docker compose run --rm migrate
+            docker compose up -d --remove-orphans
+            docker compose ps
+            docker image prune -f

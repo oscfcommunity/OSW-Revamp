@@ -1,0 +1,242 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Badge from '../../components/ui/Badge.astro';
+import Button from '../../components/ui/Button.astro';
+import { getEvent } from '../../lib/events';
+import { renderTrustedMarkdown } from '../../lib/markdown';
+import { Calendar, ChevronLeft, Clock, ExternalLink, Map, MapPin, Mic, Users } from 'lucide-astro';
+
+const { slug } = Astro.params;
+const event = slug ? await getEvent(slug) : undefined;
+
+if (!event) {
+  return Astro.rewrite('/404');
+}
+
+const start = new Date(event.startDate);
+const end = new Date(event.endDate);
+const isValid = (date: Date): boolean => !Number.isNaN(date.getTime());
+
+const dateLabel = isValid(start)
+  ? isValid(end) && start.toDateString() !== end.toDateString()
+    ? `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+    : start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  : 'Date to be announced';
+
+const timeLabel = isValid(start)
+  ? start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  : null;
+
+const isPast = isValid(end) && end < new Date();
+const placeLabel = event.venue || event.location;
+const contentHtml = await renderTrustedMarkdown(event.long_description || event.description || '');
+
+const isCfpOpen =
+  event.cfpStatus === 'Open' &&
+  !isPast &&
+  (!event.cfpEndDate || new Date(event.cfpEndDate) >= new Date());
+
+const speakers = event.speakers?.filter((speaker) => speaker.name !== 'Unknown') ?? [];
+const agenda = event.agenda?.filter((item) => item.activity !== '') ?? [];
+const images = event.images ?? [];
+---
+
+<Layout
+  title={`${event.title} | Open Source Weekend`}
+  description={event.description || `${event.title} — an Open Source Weekend event.`}
+>
+  <div class="mx-auto max-w-5xl space-y-8 px-4 py-8">
+    <Button
+      href="/events"
+      variant="ghost"
+      size="sm"
+      class="hover:text-primary pl-0 hover:bg-transparent"
+    >
+      <ChevronLeft class="size-4" /> Back to events
+    </Button>
+
+    <header class="bg-card border-border space-y-6 rounded-2xl border p-8 shadow-sm md:p-10">
+      <div class="flex flex-wrap items-center gap-3">
+        {event.type && <Badge variant="secondary">{event.type}</Badge>}
+        {event.attendanceMode && <Badge variant="default">{event.attendanceMode}</Badge>}
+        {event.community && <span class="text-primary text-sm font-bold">{event.community}</span>}
+        {
+          isPast && (
+            <span class="text-muted-foreground bg-muted rounded-full px-3 py-1 text-xs font-semibold">
+              Past event
+            </span>
+          )
+        }
+      </div>
+
+      <h1 class="font-['Outfit'] text-3xl font-extrabold tracking-tight md:text-5xl">
+        {event.title}
+      </h1>
+
+      {
+        event.description && (
+          <p class="text-muted-foreground max-w-3xl text-lg leading-relaxed">{event.description}</p>
+        )
+      }
+
+      <dl class="text-foreground/80 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+        <div class="flex items-center gap-2">
+          <Calendar class="text-primary size-4 shrink-0" />
+          <dd>{dateLabel}</dd>
+        </div>
+        {
+          timeLabel && (
+            <div class="flex items-center gap-2">
+              <Clock class="text-primary size-4 shrink-0" />
+              <dd>{timeLabel}</dd>
+            </div>
+          )
+        }
+        {
+          placeLabel && (
+            <div class="flex items-center gap-2">
+              <MapPin class="text-primary size-4 shrink-0" />
+              <dd>{placeLabel}</dd>
+            </div>
+          )
+        }
+      </dl>
+
+      {
+        event.tags && event.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2">
+            {event.tags.map((tag) => (
+              <span class="text-primary bg-primary/5 border-primary/10 rounded border px-2 py-0.5 text-xs">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )
+      }
+
+      <div class="flex flex-wrap items-center gap-4 pt-2">
+        {
+          event.link && (
+            <Button href={event.link} target="_blank" rel="noopener noreferrer">
+              {isPast ? 'Event page' : 'Register'} <ExternalLink class="size-4" />
+            </Button>
+          )
+        }
+        {
+          isCfpOpen && (
+            <span class="text-sm font-bold text-green-600 dark:text-green-400">
+              CFP is open
+              {event.cfpEndDate &&
+                ` · closes ${new Date(event.cfpEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+            </span>
+          )
+        }
+      </div>
+    </header>
+
+    <div class="grid gap-8 md:grid-cols-3">
+      <div class="space-y-8 md:col-span-2">
+        {
+          contentHtml && (
+            <article
+              class="prose dark:prose-invert bg-card border-border prose-headings:font-['Outfit'] prose-a:text-primary max-w-none rounded-2xl border p-8 shadow-sm md:p-10"
+              set:html={contentHtml}
+            />
+          )
+        }
+
+        {
+          agenda.length > 0 && (
+            <section class="bg-card border-border rounded-2xl border p-8 shadow-sm">
+              <h2 class="mb-6 flex items-center gap-2 font-['Outfit'] text-xl font-bold">
+                <Clock class="text-primary size-5" /> Agenda
+              </h2>
+              <ol class="space-y-4">
+                {agenda.map((item) => (
+                  <li class="border-border/60 flex gap-4 border-b pb-4 last:border-none last:pb-0">
+                    <span class="text-primary w-24 shrink-0 text-sm font-bold">{item.time}</span>
+                    <span class="text-foreground/90 text-sm">{item.activity}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )
+        }
+
+        {
+          images.length > 0 && (
+            <section class="grid gap-4 sm:grid-cols-2">
+              {images.map((image) => (
+                <img
+                  src={image}
+                  alt={`${event.title} photo`}
+                  loading="lazy"
+                  class="border-border w-full rounded-xl border object-cover"
+                />
+              ))}
+            </section>
+          )
+        }
+      </div>
+
+      <aside class="space-y-6 md:col-span-1">
+        {
+          speakers.length > 0 && (
+            <section class="bg-card border-border rounded-xl border p-6 shadow-sm">
+              <h2 class="mb-4 flex items-center gap-2 text-lg font-bold">
+                <Mic class="text-primary size-5" /> Speakers
+              </h2>
+              <ul class="space-y-4">
+                {speakers.map((speaker) => (
+                  <li class="flex items-center gap-3">
+                    {speaker.avatar ? (
+                      <img
+                        src={speaker.avatar}
+                        alt=""
+                        loading="lazy"
+                        class="size-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span class="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-full">
+                        <Users class="size-4" />
+                      </span>
+                    )}
+                    <span>
+                      <span class="block text-sm font-semibold">{speaker.name}</span>
+                      {speaker.role && (
+                        <span class="text-muted-foreground block text-xs">{speaker.role}</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          (event.venue_name || event.venue_map) && (
+            <section class="bg-card border-border rounded-xl border p-6 shadow-sm">
+              <h2 class="mb-4 flex items-center gap-2 text-lg font-bold">
+                <Map class="text-primary size-5" /> Venue
+              </h2>
+              {event.venue_name && (
+                <p class="text-muted-foreground text-sm leading-relaxed">{event.venue_name}</p>
+              )}
+              {event.venue_map && (
+                <a
+                  href={event.venue_map}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary mt-3 inline-flex items-center gap-1 text-sm hover:underline"
+                >
+                  Open in maps <ExternalLink class="size-3.5" />
+                </a>
+              )}
+            </section>
+          )
+        }
+      </aside>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@db:5432/osw
+      HOST: 0.0.0.0
+      PORT: 4321
+      NODE_ENV: production
+    # Loopback only: nginx or Caddy terminates TLS in front of it. OAuth and
+    # secure cookies both require HTTPS, so the app is never exposed directly.
+    ports:
+      - '127.0.0.1:3000:4321'
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    build: .
+    command: ['npx', 'tsx', 'scripts/migrate.ts']
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@db:5432/osw
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: osw
+      POSTGRES_DB: osw
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U osw']
+      interval: 5s
+      retries: 10
+    # Deliberately no published ports: the database is only reachable on the
+    # compose network.
+
+volumes:
+  pgdata:

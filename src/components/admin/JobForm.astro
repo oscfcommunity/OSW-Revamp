@@ -1,0 +1,110 @@
+---
+import { actions } from 'astro:actions';
+
+import Field from './Field.astro';
+import { job } from '../../db/schema/content';
+
+interface Props {
+  job?: typeof job.$inferSelect;
+  error?: string;
+}
+
+const { job: existing, error } = Astro.props;
+---
+
+<form method="POST" action={actions.admin.saveJob} class="space-y-8">
+  {existing && <input type="hidden" name="id" value={existing.id} />}
+
+  {
+    error && (
+      <p class="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm">
+        {error}
+      </p>
+    )
+  }
+
+  <section class="bg-card border-border space-y-5 rounded-xl border p-6">
+    <h2 class="font-bold">Role</h2>
+    <Field label="Title" name="title" required value={existing?.title} />
+    <Field
+      label="Slug"
+      name="slug"
+      required
+      value={existing?.slug}
+      hint="Used in the URL: /jobs/your-slug"
+    />
+    <div class="grid gap-5 sm:grid-cols-2">
+      <Field label="Company" name="company" required value={existing?.company} />
+      <Field
+        label="Company website"
+        name="companyWebsite"
+        type="url"
+        value={existing?.companyWebsite}
+      />
+    </div>
+    <Field label="Apply link" name="applyLink" type="url" required value={existing?.applyLink} />
+  </section>
+
+  <section class="bg-card border-border space-y-5 rounded-xl border p-6">
+    <h2 class="font-bold">Details</h2>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <Field
+        label="Experience"
+        name="experience"
+        value={existing?.experience}
+        placeholder="3+ years"
+      />
+      <Field label="Openings" name="openings" value={existing?.openings ?? '1'} />
+    </div>
+    <div class="grid gap-5 sm:grid-cols-3">
+      <Field
+        label="Job type"
+        name="jobType"
+        type="select"
+        value={existing?.jobType ?? 'Full Time'}
+        options={['Full Time', 'Part Time', 'Contract', 'Internship']}
+      />
+      <Field
+        label="Mode"
+        name="jobMode"
+        type="select"
+        value={existing?.jobMode ?? 'Remote'}
+        options={['Remote', 'Onsite', 'Hybrid']}
+      />
+      <Field label="Location" name="location" value={existing?.location} />
+    </div>
+    <Field
+      label="Description (Markdown)"
+      name="descriptionMd"
+      type="textarea"
+      value={existing?.descriptionMd}
+    />
+    <Field
+      label="About the company"
+      name="aboutCompany"
+      type="textarea"
+      rows={4}
+      value={existing?.aboutCompany}
+    />
+    <div class="grid gap-5 sm:grid-cols-2">
+      <Field
+        label="Status"
+        name="status"
+        type="select"
+        value={existing?.status ?? 'open'}
+        options={['open', 'closed']}
+      />
+      <Field label="Featured" name="featured" type="checkbox" value={existing?.featured ?? false} />
+    </div>
+  </section>
+
+  <div class="flex items-center gap-4">
+    <button
+      type="submit"
+      class="bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-lg px-6 text-sm font-bold"
+    >
+      {existing ? 'Save changes' : 'Create job'}
+    </button>
+    <a href="/admin/jobs" class="text-muted-foreground hover:text-foreground text-sm">Cancel</a>
+  </div>
+</form>

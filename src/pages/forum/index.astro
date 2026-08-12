@@ -1,0 +1,80 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ThreadRow from '../../components/forum/ThreadRow.astro';
+import { db } from '../../db';
+import { ensureCategories, listCategories, listThreads } from '../../lib/forum/repo';
+import { MessagesSquare, Plus } from 'lucide-astro';
+
+await ensureCategories(db);
+
+const [categories, latest] = await Promise.all([listCategories(db), listThreads(db, { page: 1 })]);
+
+const viewer = Astro.locals.viewer;
+---
+
+<Layout
+  title="Forum | Open Source Weekend"
+  description="Ask questions, share projects and talk open source with the Open Source Weekend community."
+>
+  <div class="mx-auto max-w-5xl space-y-10 px-4 py-12">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="font-['Outfit'] text-4xl font-extrabold tracking-tight">
+          Community <span class="text-primary">Forum</span>
+        </h1>
+        <p class="text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+          Ask questions, share what you are building, and keep the conversation going between
+          weekends.
+        </p>
+      </div>
+      <a
+        href="/forum/new"
+        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold"
+      >
+        <Plus class="size-4" /> New thread
+      </a>
+    </header>
+
+    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        categories.map((category) => (
+          <a
+            href={`/forum/c/${category.slug}`}
+            class="bg-card border-border hover:border-primary rounded-xl border p-5 transition-colors"
+          >
+            <h2 class="flex items-center gap-2 font-bold">
+              <MessagesSquare class="text-primary size-4" />
+              {category.name}
+            </h2>
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">{category.description}</p>
+            <p class="text-muted-foreground mt-3 text-xs font-semibold">
+              {category.threadCount} thread{category.threadCount === 1 ? '' : 's'}
+            </p>
+          </a>
+        ))
+      }
+    </section>
+
+    <section>
+      <h2 class="mb-4 font-['Outfit'] text-xl font-bold">Latest activity</h2>
+      {
+        latest.threads.length === 0 ? (
+          <div class="border-border rounded-xl border border-dashed p-12 text-center">
+            <p class="text-muted-foreground">No threads yet. Be the first to start one.</p>
+            {!viewer && (
+              <a href="/login?next=/forum/new" class="text-primary mt-3 inline-block font-semibold">
+                Sign in to post
+              </a>
+            )}
+          </div>
+        ) : (
+          <div class="bg-card border-border overflow-hidden rounded-xl border">
+            {latest.threads.map((thread) => (
+              <ThreadRow thread={thread} showCategory />
+            ))}
+          </div>
+        )
+      }
+    </section>
+  </div>
+</Layout>

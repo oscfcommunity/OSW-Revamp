@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_events_agenda_items",
+  "info": { "displayName": "Agenda item", "icon": "clock" },
+  "options": {},
+  "attributes": {
+    "time": { "type": "string" },
+    "activity": { "type": "string" }
+  }
+}

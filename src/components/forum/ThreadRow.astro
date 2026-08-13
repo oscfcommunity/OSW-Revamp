@@ -1,0 +1,75 @@
+---
+import { MessageSquare, Pin, Lock } from 'lucide-astro';
+
+interface Props {
+  thread: {
+    slug: string;
+    title: string;
+    isPinned: boolean;
+    isLocked: boolean;
+    replyCount: number;
+    viewCount: number;
+    lastPostAt: Date;
+    categorySlug: string;
+    categoryName: string;
+    authorName: string | null;
+  };
+  showCategory?: boolean;
+}
+
+const { thread, showCategory = false } = Astro.props;
+
+const relative = (date: Date): string => {
+  const seconds = Math.round((Date.now() - date.getTime()) / 1000);
+  const units: ReadonlyArray<readonly [Intl.RelativeTimeFormatUnit, number]> = [
+    ['year', 31_536_000],
+    ['month', 2_592_000],
+    ['day', 86_400],
+    ['hour', 3_600],
+    ['minute', 60],
+  ];
+  const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+  for (const [unit, secondsInUnit] of units) {
+    if (Math.abs(seconds) >= secondsInUnit) {
+      return formatter.format(-Math.round(seconds / secondsInUnit), unit);
+    }
+  }
+  return 'just now';
+};
+---
+
+<article
+  class="border-border/60 hover:bg-accent/40 flex items-start gap-4 border-b px-4 py-4 transition-colors"
+>
+  <div class="min-w-0 flex-1">
+    <div class="flex flex-wrap items-center gap-2">
+      {thread.isPinned && <Pin class="text-primary size-3.5" />}
+      {thread.isLocked && <Lock class="text-muted-foreground size-3.5" />}
+      <a
+        href={`/forum/c/${thread.categorySlug}/${thread.slug}`}
+        class="hover:text-primary font-semibold"
+      >
+        {thread.title}
+      </a>
+    </div>
+    <p class="text-muted-foreground mt-1 text-xs">
+      {
+        showCategory && (
+          <>
+            <a href={`/forum/c/${thread.categorySlug}`} class="hover:text-primary font-medium">
+              {thread.categoryName}
+            </a>
+            {' · '}
+          </>
+        )
+      }
+      {thread.authorName ?? 'Deleted member'} · {relative(thread.lastPostAt)} · {thread.viewCount} views
+    </p>
+  </div>
+
+  <span class="text-muted-foreground flex shrink-0 items-center gap-1.5 text-sm">
+    <MessageSquare class="size-4" />
+    {thread.replyCount}
+  </span>
+</article>

@@ -1,0 +1,42 @@
+# The Strapi CMS and its Postgres already run on this host under the compose
+# project "osw" (working dir /var/www/osw). This file deliberately uses a
+# DIFFERENT project name and defines NO database service, so it can never adopt,
+# recreate or remove those containers. Never run it with --remove-orphans.
+name: osw-app
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Reuses the existing Postgres container (osw_db) with a separate database
+      # for the application's own tables: accounts, sessions and the forum.
+      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@osw_db:5432/${APP_DB_NAME:-osw_app}
+      HOST: 0.0.0.0
+      PORT: 4321
+      NODE_ENV: production
+    # Loopback only: nginx terminates TLS and proxies to this.
+    ports:
+      - '127.0.0.1:3000:4321'
+    networks:
+      - osw
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    build: .
+    command: ['npx', 'tsx', 'scripts/migrate.ts']
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://osw:${POSTGRES_PASSWORD}@osw_db:5432/${APP_DB_NAME:-osw_app}
+    networks:
+      - osw
+    restart: 'no'
+
+networks:
+  # Created by the existing Strapi stack; joined, never managed, from here.
+  osw:
+    name: osw_osw
+    external: true

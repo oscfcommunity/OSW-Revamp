@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "jobs",
+  "info": {
+    "singularName": "job",
+    "pluralName": "jobs",
+    "displayName": "Job",
+    "description": "Roles shared with the Open Source Weekend community."
+  },
+  "options": { "draftAndPublish": true },
+  "pluginOptions": {},
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "job_slug": { "type": "uid", "targetField": "title", "required": true },
+    "apply_link": { "type": "string", "required": true },
+    "posted_on": { "type": "date" },
+    "experience": { "type": "string" },
+    "job_type": {
+      "type": "enumeration",
+      "enum": ["Full Time", "Part Time", "Contract", "Internship"],
+      "default": "Full Time"
+    },
+    "job_mode": {
+      "type": "enumeration",
+      "enum": ["Remote", "Onsite", "Hybrid"],
+      "default": "Remote"
+    },
+    "location": { "type": "string" },
+    "description": { "type": "richtext" },
+    "job_status": {
+      "type": "enumeration",
+      "enum": ["Open", "Closed"],
+      "default": "Open"
+    },
+    "openings": { "type": "integer", "default": 1, "min": 1 },
+    "featured": { "type": "boolean", "default": false },
+    "submitted_by": { "type": "string", "private": true },
+    "company": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::company.company",
+      "inversedBy": "jobs"
+    },
+    "skills": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::skill.skill",
+      "inversedBy": "jobs"
+    }
+  }
+}

@@ -4,10 +4,14 @@ on:
   push:
     branches:
       - trunk
-  workflow_dispatch:      
+  workflow_dispatch:
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: ci
     runs-on: ubuntu-latest
 
     steps:
@@ -21,28 +25,37 @@ jobs:
           script: |
             set -e
 
-            # Clone if first time
             if [ ! -d "/var/www/osw/.git" ]; then
               git clone https://github.com/oscfcommunity/osweekend.git /var/www/osw
             fi
 
             cd /var/www/osw
-
-            # Pull latest code (hard reset to always match remote)
             git fetch origin trunk
             git reset --hard origin/trunk
 
-            # Build Docker image
-            docker build -t osw .
+            # .env lives on the server (chmod 600) and is never committed.
+            test -f .env || { echo "missing /var/www/osw/.env"; exit 1; }
 
-            # Restart container
-            docker stop osw || true
-            docker rm osw || true
+            # The Strapi CMS and its database run under the separate compose
+            # project "osw". Everything below is scoped to "osw-app" and must
+            # never be given --remove-orphans, which would delete them.
+            COMPOSE="docker compose -p osw-app"
 
-            docker run -d \
-              --name osw \
-              -p 3000:4321 \
-              -e HOST=0.0.0.0 \
-              -e PORT=4321 \
-              --restart unless-stopped \
-              osw
+            # Back up the application database before migrations run.
+            mkdir -p /var/backups/osw
+            docker exec -t osw_db pg_dump -U osw -Fc "${APP_DB_NAME:-osw_app}" \
+              | gzip > "/var/backups/osw/app-pre-deploy-$(date +%F-%H%M).dump.gz" \
+              || echo "no application database yet, skipping pre-deploy backup"
+
+            $COMPOSE build
+
+            # The legacy container was started with `docker run` and binds the
+            # same host port, so it has to go before the compose app can bind it.
+            if docker ps --format '{{.Names}}' | grep -qx osw; then
+              docker stop osw && docker rm osw
+            fi
+
+            $COMPOSE run --rm migrate
+            $COMPOSE up -d
+            $COMPOSE ps
+            docker image prune -f

@@ -7,21 +7,51 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "seed:forum": "tsx scripts/seed-forum.ts"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.4",
     "@astrojs/sitemap": "^3.7.2",
+    "@electric-sql/pglite": "^0.5.4",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.1",
     "astro": "^6.1.5",
+    "better-auth": "^1.6.27",
+    "drizzle-orm": "^0.45.2",
+    "hast-util-sanitize": "^5.0.2",
     "lucide-astro": "^0.556.0",
-    "marked": "^18.0.0",
     "papaparse": "^5.5.3",
+    "pg": "^8.23.0",
+    "rehype-external-links": "^3.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
     "tailwindcss": "^4.2.1",
-    "typed.js": "^3.0.0"
+    "typed.js": "^3.0.0",
+    "unified": "^11.0.5"
   },
   "devDependencies": {
-    "@types/papaparse": "^5.5.2"
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.2.0",
+    "@types/papaparse": "^5.5.2",
+    "@types/pg": "^8.21.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "drizzle-kit": "^0.31.10",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }

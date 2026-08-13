@@ -11,54 +11,71 @@ import { getJobs } from '../lib/jobs';
 
 // Fetch Data
 const upcomingEvents = (await getEvents())
-    .filter(e => new Date(e.endDate) >= new Date())
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-    .slice(0, 3); // Top 3 events
+  .filter((e) => new Date(e.endDate) >= new Date())
+  .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+  .slice(0, 3); // Top 3 events
 
 const featuredJobs = (await getJobs())
-    .filter(j => j.status === 'Open')
-    .sort((a, b) => {
-        // 1. Featured Priority
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
-        // 2. Date Priority
-        const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
-        const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
-        return timeB - timeA;
-    })
-    .slice(0, 3); // Top 3 jobs
+  .filter((j) => j.status === 'Open')
+  .sort((a, b) => {
+    // 1. Featured Priority
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    // 2. Date Priority
+    const timeA = isNaN(a.postedOn.getTime()) ? 0 : a.postedOn.getTime();
+    const timeB = isNaN(b.postedOn.getTime()) ? 0 : b.postedOn.getTime();
+    return timeB - timeA;
+  })
+  .slice(0, 3); // Top 3 jobs
 ---
 
 <Layout title="Open Source Weekend | Connect, Share, Thrive">
   <!-- Hero Section -->
-  <section class="py-12 md:py-24 relative overflow-hidden">
+  <section class="relative overflow-hidden py-12 md:py-24">
     <!-- Background Gradient Blob -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[100px] rounded-full -z-10 pointer-events-none"></div>
+    <div
+      class="bg-primary/10 pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]"
+    >
+    </div>
 
-    <div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center">
-      
+    <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 lg:grid-cols-2">
       <!-- Left Column: Text -->
       <div class="space-y-8 text-center lg:text-left">
         <div class="space-y-4">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20 mb-2">
+          <div
+            class="bg-primary/10 text-primary border-primary/20 mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium"
+          >
             <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              <span
+                class="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+              ></span>
+              <span class="bg-primary relative inline-flex h-2 w-2 rounded-full"></span>
             </span>
             Join the movement
           </div>
-          
-          <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground font-['Outfit'] leading-tight">
-             Connect. Code. <br/>
-             <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Create Together.</span>
+
+          <h1
+            class="text-foreground font-['Outfit'] text-4xl leading-tight font-extrabold tracking-tight md:text-6xl"
+          >
+            Connect. Code. <br />
+            <span class="from-primary to-secondary bg-gradient-to-r bg-clip-text text-transparent"
+              >Create Together.</span
+            >
           </h1>
-          <p class="text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-            A community-driven initiative empowering developers through events, mentorship, and open source collaboration.
+          <p
+            class="text-muted-foreground mx-auto max-w-xl text-xl leading-relaxed font-light lg:mx-0"
+          >
+            A community-driven initiative empowering developers through events, mentorship, and open
+            source collaboration.
           </p>
         </div>
-        
-        <div class="flex flex-wrap justify-center lg:justify-start gap-4">
-          <Button href="/events" size="lg" class="rounded-full px-8 text-base shadow-lg shadow-primary/20">
+
+        <div class="flex flex-wrap justify-center gap-4 lg:justify-start">
+          <Button
+            href="/events"
+            size="lg"
+            class="shadow-primary/20 rounded-full px-8 text-base shadow-lg"
+          >
             Join Upcoming Events
           </Button>
           <Button href="/jobs" variant="outline" size="lg" class="rounded-full px-8 text-base">
@@ -69,104 +86,110 @@ const featuredJobs = (await getJobs())
 
       <!-- Right Column: Terminal -->
       <div class="relative hidden lg:block">
-         <!-- Abstract Decorative Elements -->
-         <div class="absolute -top-10 -right-10 w-24 h-24 bg-secondary/20 rounded-full blur-2xl"></div>
-         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/20 rounded-full blur-2xl"></div>
-         
-         <Terminal />
-      </div>
+        <!-- Abstract Decorative Elements -->
+        <div class="bg-secondary/20 absolute -top-10 -right-10 h-24 w-24 rounded-full blur-2xl">
+        </div>
+        <div class="bg-primary/20 absolute -bottom-10 -left-10 h-32 w-32 rounded-full blur-2xl">
+        </div>
 
+        <Terminal />
+      </div>
     </div>
   </section>
 
   <!-- Content Sections -->
-  <div class="space-y-20 pb-20 max-w-6xl mx-auto px-4">
-    
+  <div class="mx-auto max-w-6xl space-y-20 px-4 pb-20">
     <!-- About Community -->
-    <section class="grid md:grid-cols-2 gap-12 items-center">
+    <section class="grid items-center gap-12 md:grid-cols-2">
       <div class="space-y-6">
-        <h2 class="text-3xl font-bold font-['Outfit']">
+        <h2 class="font-['Outfit'] text-3xl font-bold">
           What is <span class="text-primary">OSW</span>?
         </h2>
-        <div class="space-y-4 text-muted-foreground text-lg leading-relaxed">
+        <div class="text-muted-foreground space-y-4 text-lg leading-relaxed">
           <p>
-            Open Source Weekend is an initiative to promote Open Source technology, open exchange, and collaborative participation. We aim to build bridges between open source communities and the industry.
+            Open Source Weekend is an initiative to promote Open Source technology, open exchange,
+            and collaborative participation. We aim to build bridges between open source communities
+            and the industry.
           </p>
           <p>
-            An open movement for software freedom, we connect developers, designers, and tech enthusiasts to use, study, change, and share software. 
-            <a href="/about" class="text-primary hover:underline font-medium">Read more about our vision →</a>
+            An open movement for software freedom, we connect developers, designers, and tech
+            enthusiasts to use, study, change, and share software.
+            <a href="/about" class="text-primary font-medium hover:underline"
+              >Read more about our vision →</a
+            >
           </p>
         </div>
       </div>
-      <div class="bg-muted/30 rounded-2xl p-8 border border-border">
-         <div class="grid grid-cols-2 gap-6">
-            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
-                <span class="block text-4xl font-bold text-primary mb-2">300+</span>
-                <span class="text-sm text-muted-foreground">Meetups</span>
-            </div>
-            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
-                <span class="block text-4xl font-bold text-secondary mb-2">600+</span>
-                <span class="text-sm text-muted-foreground">Speakers</span>
-            </div>
-            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
-                <span class="block text-4xl font-bold text-primary mb-2">5000+</span>
-                <span class="text-sm text-muted-foreground">Attendees</span>
-            </div>
-            <div class="text-center p-4 bg-background rounded-xl shadow-sm">
-                <span class="block text-4xl font-bold text-secondary mb-2">100+</span>
-                <span class="text-sm text-muted-foreground">News Features</span>
-            </div>
-         </div>
+      <div class="bg-muted/30 border-border rounded-2xl border p-8">
+        <div class="grid grid-cols-2 gap-6">
+          <div class="bg-background rounded-xl p-4 text-center shadow-sm">
+            <span class="text-primary mb-2 block text-4xl font-bold">300+</span>
+            <span class="text-muted-foreground text-sm">Meetups</span>
+          </div>
+          <div class="bg-background rounded-xl p-4 text-center shadow-sm">
+            <span class="text-secondary mb-2 block text-4xl font-bold">600+</span>
+            <span class="text-muted-foreground text-sm">Speakers</span>
+          </div>
+          <div class="bg-background rounded-xl p-4 text-center shadow-sm">
+            <span class="text-primary mb-2 block text-4xl font-bold">5000+</span>
+            <span class="text-muted-foreground text-sm">Attendees</span>
+          </div>
+          <div class="bg-background rounded-xl p-4 text-center shadow-sm">
+            <span class="text-secondary mb-2 block text-4xl font-bold">100+</span>
+            <span class="text-muted-foreground text-sm">News Features</span>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- upcoming events -->
     <section class="space-y-8">
       <div class="flex items-center justify-between px-2">
-        <h2 class="text-3xl font-bold font-['Outfit'] flex items-center gap-2">
+        <h2 class="flex items-center gap-2 font-['Outfit'] text-3xl font-bold">
           📅 Upcoming Events
         </h2>
         <Button href="/events" variant="ghost" class="group">
-          View all events <span class="group-hover:translate-x-1 transition-transform">→</span>
+          View all events <span class="transition-transform group-hover:translate-x-1">→</span>
         </Button>
       </div>
-      
-      {upcomingEvents.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {upcomingEvents.map(event => (
+
+      {
+        upcomingEvents.length > 0 ? (
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {upcomingEvents.map((event) => (
               <EventCard event={event} />
-          ))}
-        </div>
-      ) : (
-        <div class="p-12 text-center border border-dashed border-border rounded-xl bg-muted/30">
+            ))}
+          </div>
+        ) : (
+          <div class="border-border bg-muted/30 rounded-xl border border-dashed p-12 text-center">
             <p class="text-muted-foreground">No upcoming events right now. Check back soon!</p>
-        </div>
-      )}
+          </div>
+        )
+      }
     </section>
 
     <!-- Latest Jobs -->
     <section class="space-y-8">
       <div class="flex items-center justify-between px-2">
-        <h2 class="text-3xl font-bold font-['Outfit'] flex items-center gap-2">
-           Latest Jobs
-        </h2>
+        <h2 class="flex items-center gap-2 font-['Outfit'] text-3xl font-bold">Latest Jobs</h2>
         <Button href="/jobs" variant="ghost" class="group">
-          View all jobs <span class="group-hover:translate-x-1 transition-transform">→</span>
+          View all jobs <span class="transition-transform group-hover:translate-x-1">→</span>
         </Button>
       </div>
 
-      {featuredJobs.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {featuredJobs.map(job => (
-            <JobCard job={job} />
-          ))}
-        </div>
-      ) : (
-        <div class="p-12 text-center border border-dashed border-border rounded-xl bg-muted/30">
+      {
+        featuredJobs.length > 0 ? (
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {featuredJobs.map((job) => (
+              <JobCard job={job} />
+            ))}
+          </div>
+        ) : (
+          <div class="border-border bg-muted/30 rounded-xl border border-dashed p-12 text-center">
             <p class="text-muted-foreground">No open positions right now. Check back later!</p>
-        </div>
-      )}
+          </div>
+        )
+      }
     </section>
-
   </div>
 </Layout>

@@ -1,0 +1,76 @@
+---
+interface Props {
+  label: string;
+  name: string;
+  type?: 'text' | 'url' | 'date' | 'datetime-local' | 'textarea' | 'select' | 'checkbox';
+  value?: string | number | boolean | null;
+  required?: boolean;
+  placeholder?: string;
+  hint?: string;
+  rows?: number;
+  options?: readonly string[];
+  error?: string;
+}
+
+const {
+  label,
+  name,
+  type = 'text',
+  value,
+  required = false,
+  placeholder,
+  hint,
+  rows = 8,
+  options = [],
+  error,
+} = Astro.props;
+
+const stringValue = value === null || value === undefined ? '' : String(value);
+const inputClass =
+  'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none';
+---
+
+<div class="space-y-1.5">
+  <label class="block text-sm font-medium" for={name}>
+    {label}
+    {required && <span class="text-destructive ml-0.5">*</span>}
+  </label>
+
+  {
+    type === 'textarea' ? (
+      <textarea id={name} name={name} rows={rows} placeholder={placeholder} class={inputClass}>
+        {stringValue}
+      </textarea>
+    ) : type === 'select' ? (
+      <select id={name} name={name} class={inputClass}>
+        {options.map((option) => (
+          <option value={option} selected={option === stringValue}>
+            {option}
+          </option>
+        ))}
+      </select>
+    ) : type === 'checkbox' ? (
+      <input
+        id={name}
+        name={name}
+        type="checkbox"
+        value="true"
+        checked={value === true}
+        class="border-border size-4 rounded"
+      />
+    ) : (
+      <input
+        id={name}
+        name={name}
+        type={type}
+        value={stringValue}
+        required={required}
+        placeholder={placeholder}
+        class={inputClass}
+      />
+    )
+  }
+
+  {hint && <p class="text-muted-foreground text-xs">{hint}</p>}
+  {error && <p class="text-destructive text-xs">{error}</p>}
+</div>

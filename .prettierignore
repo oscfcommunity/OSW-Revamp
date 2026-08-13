@@ -1,0 +1,8 @@
+dist
+node_modules
+.astro
+.pglite
+package-lock.json
+drizzle
+public
+strapi/src

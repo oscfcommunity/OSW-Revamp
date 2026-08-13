@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/ui/Button.astro';
+import { Calendar, Briefcase, Home } from 'lucide-astro';
+
+Astro.response.status = 404;
+---
+
+<Layout
+  title="Page not found | Open Source Weekend"
+  description="The page you were looking for does not exist."
+>
+  <div class="mx-auto flex max-w-2xl flex-col items-center px-4 py-24 text-center">
+    <p class="text-primary font-['Outfit'] text-7xl font-extrabold md:text-8xl">404</p>
+    <h1 class="mt-4 font-['Outfit'] text-3xl font-bold tracking-tight md:text-4xl">
+      This page took the weekend off
+    </h1>
+    <p class="text-muted-foreground mt-4 leading-relaxed">
+      The link may be broken, or the event or job listing may have been removed.
+    </p>
+
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+      <Button href="/">
+        <Home class="size-4" /> Back home
+      </Button>
+      <Button href="/events" variant="outline">
+        <Calendar class="size-4" /> Browse events
+      </Button>
+      <Button href="/jobs" variant="outline">
+        <Briefcase class="size-4" /> Browse jobs
+      </Button>
+    </div>
+  </div>
+</Layout>

@@ -1,9 +1,17 @@
 ---
-
 import Layout from '../../layouts/Layout.astro';
-import { MapPin, Briefcase, Building2, Monitor, Clock, ChevronLeft, ExternalLink, Users } from 'lucide-astro';
+import {
+  MapPin,
+  Briefcase,
+  Building2,
+  Monitor,
+  Clock,
+  ChevronLeft,
+  ExternalLink,
+  Users,
+} from 'lucide-astro';
 import { getJob } from '../../lib/jobs';
-import { marked } from 'marked';
+import { renderTrustedMarkdown } from '../../lib/markdown';
 
 // Design System
 import Badge from '../../components/ui/Badge.astro';
@@ -18,8 +26,20 @@ if (!job) {
   return Astro.redirect('/404');
 }
 
-const { title, company, jobType, jobMode, location, postedOn, skills, experience, companyWebsite, applyLink, aboutCompany } = job;
-const contentHtml = await marked.parse(job.description || '');
+const {
+  title,
+  company,
+  jobType,
+  jobMode,
+  location,
+  postedOn,
+  skills,
+  experience,
+  companyWebsite,
+  applyLink,
+  aboutCompany,
+} = job;
+const contentHtml = await renderTrustedMarkdown(job.description || '');
 
 // Safely format the posted date
 let formattedPostedDate = 'Recently';
@@ -34,79 +54,137 @@ try {
 const description = `Apply for ${title} at ${company}. ${experience} experience required.`;
 ---
 
-<Layout title={`${title} at ${company} | TechJobs`} description={description}>
-  <div class="space-y-8 max-w-4xl mx-auto px-4 py-8">
-    <Button href="/jobs" variant="ghost" size="sm" class="pl-0 hover:bg-transparent hover:text-primary">
-      <ChevronLeft class="size-4 mr-1" /> Back to Jobs
+<Layout title={`${title} at ${company} | Open Source Weekend`} description={description}>
+  <div class="mx-auto max-w-4xl space-y-8 px-4 py-8">
+    <Button
+      href="/jobs"
+      variant="ghost"
+      size="sm"
+      class="hover:text-primary pl-0 hover:bg-transparent"
+    >
+      <ChevronLeft class="mr-1 size-4" /> Back to Jobs
     </Button>
 
-    <div class="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-sm">
-      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-        <div class="space-y-6 flex-1">
+    <div class="bg-card border-border rounded-2xl border p-8 shadow-sm md:p-10">
+      <div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+        <div class="flex-1 space-y-6">
           <div>
-            <h1 class="text-3xl md:text-5xl font-['Plus_Jakarta_Sans'] font-extrabold text-foreground tracking-tight leading-tight">{title}</h1>
-            <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground mt-4">
-              <IconText icon={Building2} text={company} href={companyWebsite} target="_blank" rel="noopener noreferrer" />
+            <h1
+              class="text-foreground font-['Plus_Jakarta_Sans'] text-3xl leading-tight font-extrabold tracking-tight md:text-5xl"
+            >
+              {title}
+            </h1>
+            <div
+              class="text-muted-foreground mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
+            >
+              <IconText
+                icon={Building2}
+                text={company}
+                href={companyWebsite}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
               <IconText icon={Briefcase} text={job.jobType} />
               <IconText icon={MapPin} text={job.location} />
               <IconText icon={Monitor} text={job.jobMode} />
-              <IconText icon={Clock} text={`Posted ${new Date(job.postedOn).toLocaleDateString()}`} />
-              <IconText icon={Users} text={`${job.openings} Opening${job.openings !== '1' ? 's' : ''}`} />
+              <IconText
+                icon={Clock}
+                text={`Posted ${new Date(job.postedOn).toLocaleDateString()}`}
+              />
+              <IconText
+                icon={Users}
+                text={`${job.openings} Opening${job.openings !== '1' ? 's' : ''}`}
+              />
             </div>
           </div>
-
         </div>
 
-        <div class="flex flex-col gap-4 min-w-[200px]">
-          {job.status === 'Closed' ? (
-            <Button disabled variant="secondary" size="lg" class="w-full opacity-50 cursor-not-allowed">
-              Position Filled
-            </Button>
-          ) : (
-            <Button href={applyLink} target="_blank" rel="noopener noreferrer" size="lg" class="w-full shadow-lg hover:-translate-y-0.5">
-              Apply Now <ExternalLink class="size-4" />
-            </Button>
-          )}
-          
-          <div class="text-center text-sm text-muted-foreground bg-muted/30 py-3 rounded-lg border border-border/30">
-            Experience: <span class="font-bold text-foreground block mt-0.5">{experience}</span>
+        <div class="flex min-w-[200px] flex-col gap-4">
+          {
+            job.status === 'Closed' ? (
+              <Button
+                disabled
+                variant="secondary"
+                size="lg"
+                class="w-full cursor-not-allowed opacity-50"
+              >
+                Position Filled
+              </Button>
+            ) : (
+              <Button
+                href={applyLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="lg"
+                class="w-full shadow-lg hover:-translate-y-0.5"
+              >
+                Apply Now <ExternalLink class="size-4" />
+              </Button>
+            )
+          }
+
+          <div
+            class="text-muted-foreground bg-muted/30 border-border/30 rounded-lg border py-3 text-center text-sm"
+          >
+            Experience: <span class="text-foreground mt-0.5 block font-bold">{experience}</span>
           </div>
         </div>
       </div>
-      
-      {job.status === 'Closed' && (
-        <div class="mt-8 bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ban w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-          This job is currently closed and no longer accepting applications.
-        </div>
-      )}
 
-      <div class="mt-10 border-t border-border pt-8">
-        <h3 class="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Required Skills</h3>
+      {
+        job.status === 'Closed' && (
+          <div class="bg-destructive/10 border-destructive/20 text-destructive mt-8 flex items-center gap-2 rounded-lg border px-4 py-3 font-medium">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-ban h-5 w-5"
+            >
+              <>
+                <circle cx="12" cy="12" r="10" />
+                <path d="m4.9 4.9 14.2 14.2" />
+              </>
+            </svg>
+            This job is currently closed and no longer accepting applications.
+          </div>
+        )
+      }
+
+      <div class="border-border mt-10 border-t pt-8">
+        <h3 class="text-muted-foreground mb-4 text-xs font-bold tracking-widest uppercase">
+          Required Skills
+        </h3>
         <div class="flex flex-wrap gap-2.5">
-          {skills.map((skill: string) => (
-            <SkillTag skill={skill} />
-          ))}
+          {skills.map((skill: string) => <SkillTag skill={skill} />)}
         </div>
       </div>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-8">
-      <div class="md:col-span-2 space-y-8">
-        <article class="prose prose-lg dark:prose-invert max-w-none prose-headings:font-['Plus_Jakarta_Sans'] prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary/80 prose-li:marker:text-primary bg-card p-8 md:p-12 rounded-2xl border border-border shadow-sm" set:html={contentHtml} />
+    <div class="grid gap-8 md:grid-cols-3">
+      <div class="space-y-8 md:col-span-2">
+        <article
+          class="prose prose-lg dark:prose-invert prose-headings:font-['Plus_Jakarta_Sans'] prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary/80 prose-li:marker:text-primary bg-card border-border max-w-none rounded-2xl border p-8 shadow-sm md:p-12"
+          set:html={contentHtml}
+        />
       </div>
 
-      <div class="md:col-span-1 space-y-6">
-        {aboutCompany && (
-          <div class="bg-card border border-border rounded-xl p-6 shadow-sm">
-            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-              <Building2 class="size-5 text-primary" /> About {company}
-            </h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">
-              {aboutCompany}
-            </p>
-          </div>
-        )}
+      <div class="space-y-6 md:col-span-1">
+        {
+          aboutCompany && (
+            <div class="bg-card border-border rounded-xl border p-6 shadow-sm">
+              <h3 class="mb-4 flex items-center gap-2 text-lg font-bold">
+                <Building2 class="text-primary size-5" /> About {company}
+              </h3>
+              <p class="text-muted-foreground text-sm leading-relaxed">{aboutCompany}</p>
+            </div>
+          )
+        }
       </div>
     </div>
   </div>

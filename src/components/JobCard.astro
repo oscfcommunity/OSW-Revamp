@@ -27,66 +27,83 @@ try {
 const isClosed = status === 'Closed';
 ---
 
-<a 
-  href={`/jobs/${jobSlug}`} 
+<a
+  href={`/jobs/${jobSlug}`}
   class={`job-card group relative block p-6 bg-card border rounded-2xl transition-all duration-300 ${isClosed ? 'opacity-75 grayscale hover:grayscale-0 border-border/50' : featured ? 'border-primary/40 shadow-xl shadow-primary/5' : 'border-border shadow-sm hover:shadow-md hover:border-primary/30'} flex flex-col h-full`}
   data-title={title}
   data-company={company}
-  data-skills={job.skills?.join(' ') || ''} 
-  data-location-type={jobMode} 
+  data-skills={job.skills?.join(' ') || ''}
+  data-location-type={jobMode}
   data-type={jobType}
 >
   {/* Priority Badges */}
-  {isClosed && (
-      <div class="absolute -top-3 right-6 bg-muted-foreground text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1 z-10">
+  {
+    isClosed && (
+      <div class="bg-muted-foreground absolute -top-3 right-6 z-10 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold tracking-wider text-white uppercase shadow-sm">
         Position Filled
       </div>
-  )}
-  {!isClosed && featured && (
-    <div class="absolute -top-3 right-6 bg-secondary text-secondary-foreground text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
-      <Zap class="size-3 fill-current" /> Urgent
-    </div>
-  )}
-  
-  <div class="flex flex-col h-full justify-between gap-6">
-    <div class="space-y-4 mb-6 flex-1">
+    )
+  }
+  {
+    !isClosed && featured && (
+      <div class="bg-secondary text-secondary-foreground absolute -top-3 right-6 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold tracking-wider uppercase shadow-sm">
+        <Zap class="size-3 fill-current" /> Urgent
+      </div>
+    )
+  }
+
+  <div class="flex h-full flex-col justify-between gap-6">
+    <div class="mb-6 flex-1 space-y-4">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
-          <IconText class="text-sm font-bold text-primary">
-            <Building2 slot="icon" class="size-4" /> {company}
+          <IconText class="text-primary text-sm font-bold">
+            <Building2 slot="icon" class="size-4" />
+            {company}
           </IconText>
-          <h3 class={`font-['Plus_Jakarta_Sans'] font-bold text-foreground group-hover:text-primary transition-colors ${featured ? 'text-2xl' : 'text-xl'}`}>
+          <h3
+            class={`font-['Plus_Jakarta_Sans'] font-bold text-foreground group-hover:text-primary transition-colors ${featured ? 'text-2xl' : 'text-xl'}`}
+          >
             {title}
           </h3>
         </div>
       </div>
-      
+
       <div class="flex flex-wrap gap-2 text-xs">
-         {job.skills?.slice(0, 4).map((skill: string) => (
-            <span class="px-2 py-0.5 rounded bg-primary/5 text-primary border border-primary/10 font-medium tracking-wide">
-              {skill}
-            </span>
-         ))}
+        {
+          job.skills
+            ?.slice(0, 4)
+            .map((skill: string) => (
+              <span class="bg-primary/5 text-primary border-primary/10 rounded border px-2 py-0.5 font-medium tracking-wide">
+                {skill}
+              </span>
+            ))
+        }
       </div>
 
       <div class="flex flex-wrap gap-3 pt-2">
         <Badge variant="muted">
-          <MapPin class="size-3.5" /> {location}
+          <MapPin class="size-3.5" />
+          {location}
         </Badge>
         <Badge variant="muted">
-          <Monitor class="size-3.5" /> {jobMode}
+          <Monitor class="size-3.5" />
+          {jobMode}
         </Badge>
-         <Badge variant="muted">
-          <Briefcase class="size-3.5" /> {jobType}
+        <Badge variant="muted">
+          <Briefcase class="size-3.5" />
+          {jobType}
         </Badge>
       </div>
     </div>
 
-    <div class="pt-6 border-t border-border/50 flex items-center justify-between">
-      <IconText class="text-xs font-medium text-muted-foreground/80">
-        <Calendar slot="icon" class="size-3.5" /> {formattedDate}
+    <div class="border-border/50 flex items-center justify-between border-t pt-6">
+      <IconText class="text-muted-foreground/80 text-xs font-medium">
+        <Calendar slot="icon" class="size-3.5" />
+        {formattedDate}
       </IconText>
-      <span class="flex items-center gap-1 text-sm font-bold text-foreground group-hover:translate-x-1 transition-transform group-hover:text-primary">
+      <span
+        class="text-foreground group-hover:text-primary flex items-center gap-1 text-sm font-bold transition-transform group-hover:translate-x-1"
+      >
         Apply Now <ArrowRight class="size-4" />
       </span>
     </div>

@@ -1,24 +1,86 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
 import sitemap from '@astrojs/sitemap';
 import node from '@astrojs/node';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://opensourceweekend.org',
 
   vite: {
+    // @ts-expect-error Astro 6 ships rolldown-vite; @tailwindcss/vite is still typed
+    // against rollup's PluginContextMeta. Runtime is unaffected.
     plugins: [tailwindcss()],
-    define: {
-      'import.meta.env.GOOGLE_EVENTS_SHEET_URL': JSON.stringify('https://docs.google.com/spreadsheets/d/e/2PACX-1vTXFbB89XRgjCZJBwPH7KleO9qKoxzzqt30F9a8FDrOzyqxzaPmCq4axRP73x2Dz5luedeQV4jrCicB/pub?gid=0&single=true&output=csv'),
-      'import.meta.env.GOOGLE_JOBS_SHEET_URL': JSON.stringify('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsuOqK_wQ8Z6S6zcCfATuHx8pChd-nZeCTnn6KY8VeJDosgNnAizLwDOogbqK6kn_CS--H17DdICJG/pub?gid=0&single=true&output=csv')
-    }
+  },
+
+  env: {
+    schema: {
+      // Content sources (the sheets are retired once CONTENT_SOURCE flips to 'strapi')
+      GOOGLE_EVENTS_SHEET_URL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      GOOGLE_JOBS_SHEET_URL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      // `secret` rather than `public` so it is read from process.env at runtime
+      // instead of being inlined at build time: one image can then serve any
+      // environment, and tests can pin the backend they mean to exercise.
+      CONTENT_SOURCE: envField.enum({
+        context: 'server',
+        access: 'secret',
+        values: ['sheet', 'strapi'],
+        default: 'sheet',
+      }),
+
+      // Strapi CMS — the source of truth for events and jobs
+      STRAPI_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      STRAPI_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
+
+      // Database
+      DATABASE_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+
+      // Auth
+      BETTER_AUTH_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
+      BETTER_AUTH_URL: envField.string({
+        context: 'server',
+        access: 'public',
+        default: 'http://localhost:4321',
+      }),
+      GOOGLE_CLIENT_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
+      GOOGLE_CLIENT_SECRET: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      GITHUB_CLIENT_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
+      GITHUB_CLIENT_SECRET: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      /** Comma separated emails promoted to admin on sign in. Bootstraps the first admin. */
+      ADMIN_EMAILS: envField.string({ context: 'server', access: 'secret', optional: true }),
+
+      // Email
+      RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      EMAIL_FROM: envField.string({
+        context: 'server',
+        access: 'public',
+        default: 'noreply@opensourceweekend.org',
+      }),
+      ADMIN_NOTIFY_EMAIL: envField.string({
+        context: 'server',
+        access: 'public',
+        default: 'opensourceweekend@gmail.com',
+      }),
+    },
   },
 
   integrations: [sitemap()],
@@ -27,4 +89,3 @@ export default defineConfig({
     mode: 'standalone',
   }),
 });
-

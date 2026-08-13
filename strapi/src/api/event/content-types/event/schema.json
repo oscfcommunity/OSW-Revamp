@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "events",
+  "info": {
+    "singularName": "event",
+    "pluralName": "events",
+    "displayName": "Event",
+    "description": "Open Source Weekend meetups, workshops and conferences."
+  },
+  "options": { "draftAndPublish": true },
+  "pluginOptions": {},
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "title", "required": true },
+    "start_date": { "type": "datetime", "required": true },
+    "end_date": { "type": "datetime" },
+    "link": { "type": "string" },
+    "location": { "type": "string" },
+    "event_type": {
+      "type": "enumeration",
+      "enum": ["In-person", "Online", "Hybrid"],
+      "default": "In-person"
+    },
+    "description": { "type": "text", "maxLength": 500 },
+    "long_description": { "type": "richtext" },
+    "community": { "type": "string" },
+    "venue": { "type": "string" },
+    "venue_name": { "type": "string" },
+    "venue_map": { "type": "string" },
+    "cfp_status": {
+      "type": "enumeration",
+      "enum": ["NA", "Open", "Closed"],
+      "default": "NA"
+    },
+    "cfp_end_date": { "type": "date" },
+    "featured": { "type": "boolean", "default": false },
+    "submitted_by": { "type": "string", "private": true },
+    "speakers": { "type": "component", "component": "events.speaker", "repeatable": true },
+    "agenda": { "type": "component", "component": "events.agenda-item", "repeatable": true },
+    "event_tags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::event-tag.event-tag",
+      "inversedBy": "events"
+    },
+    "images": { "type": "media", "multiple": true, "allowedTypes": ["images"] }
+  }
+}

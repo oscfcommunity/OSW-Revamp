@@ -19,6 +19,15 @@ import type { Job } from '../src/lib/jobs/types';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
+/**
+ * Draft & Publish is enabled on every content type in this CMS. A plain REST
+ * create writes a DRAFT, and a read-only API token only ever sees published
+ * entries — so an import without this would load hundreds of records that never
+ * appear on the site. Strapi 5 accepts ?status=published on create and update to
+ * write the published version directly.
+ */
+const PUBLISHED = 'published';
+
 const required = (name: string): string => {
   const value = process.env[name];
   if (!value) {
@@ -64,7 +73,12 @@ const findByField = async (
   field: string,
   value: string,
 ): Promise<Entry | undefined> => {
-  const query = new URLSearchParams({ [`filters[${field}][$eq]`]: value });
+  // Look in the published version, which is what the site reads and what this
+  // script writes.
+  const query = new URLSearchParams({
+    [`filters[${field}][$eq]`]: value,
+    status: PUBLISHED,
+  });
   const body = await api<ListResponse>(`${collection}?${query}`);
   return body.data[0];
 };
@@ -79,7 +93,7 @@ const upsert = async (
 
   if (existing) {
     if (!DRY_RUN) {
-      await api(`${collection}/${existing.documentId}`, {
+      await api(`${collection}/${existing.documentId}?status=${PUBLISHED}`, {
         method: 'PUT',
         body: JSON.stringify({ data }),
       });
@@ -91,7 +105,7 @@ const upsert = async (
     return { documentId: 'dry-run', created: true };
   }
 
-  const body = await api<{ data: Entry }>(collection, {
+  const body = await api<{ data: Entry }>(`${collection}?status=${PUBLISHED}`, {
     method: 'POST',
     body: JSON.stringify({ data }),
   });

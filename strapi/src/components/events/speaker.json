@@ -1,0 +1,11 @@
+{
+  "collectionName": "components_events_speakers",
+  "info": { "displayName": "Speaker", "icon": "user" },
+  "options": {},
+  "attributes": {
+    "name": { "type": "string", "required": true },
+    "role": { "type": "string" },
+    "company": { "type": "string" },
+    "link": { "type": "string" }
+  }
+}

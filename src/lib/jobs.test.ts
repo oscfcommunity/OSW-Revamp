@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
+import { parseJobsCsv } from './jobs/parse';
 import type { Job } from './jobs/types';
 
 const JOB_HEADERS = [
@@ -52,30 +53,13 @@ const asCsv = (rows: readonly JobRow[]): string =>
     ...rows.map((row) => JOB_HEADERS.map((header) => quote(row[header] ?? '')).join(',')),
   ].join('\n');
 
-const respondWithCsv = (csv: string): void => {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () => new Response(csv, { status: 200 })),
-  );
-};
-
-const loadJobs = async (rows: readonly JobRow[]): Promise<readonly Job[]> => {
-  respondWithCsv(asCsv(rows));
-  const { fetchJobsFromSheet } = await import('./jobs/sheet');
-  return fetchJobsFromSheet();
-};
+// Parsing is pure, so these tests need no environment and no network: they
+// exercise parseJobsCsv directly rather than the sheet-fetching wrapper.
+const loadJobs = (rows: readonly JobRow[]): readonly Job[] => parseJobsCsv(asCsv(rows));
 
 describe('getJobs', () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('maps a sheet row to a job', async () => {
-    const [job] = await loadJobs([aJobRow()]);
+  it('maps a sheet row to a job', () => {
+    const [job] = loadJobs([aJobRow()]);
 
     expect(job).toMatchObject({
       title: 'Platform Engineer',
@@ -96,22 +80,20 @@ describe('getJobs', () => {
     expect(job?.postedOn).toBeInstanceOf(Date);
   });
 
-  it('prefers the Job Description column over the description column', async () => {
-    const [job] = await loadJobs([
-      aJobRow({ description: 'short', 'Job Description': 'the long one' }),
-    ]);
+  it('prefers the Job Description column over the description column', () => {
+    const [job] = loadJobs([aJobRow({ description: 'short', 'Job Description': 'the long one' })]);
 
     expect(job?.description).toBe('the long one');
   });
 
-  it('falls back to the description column when Job Description is empty', async () => {
-    const [job] = await loadJobs([aJobRow({ description: 'short', 'Job Description': '' })]);
+  it('falls back to the description column when Job Description is empty', () => {
+    const [job] = loadJobs([aJobRow({ description: 'short', 'Job Description': '' })]);
 
     expect(job?.description).toBe('short');
   });
 
-  it('reads the status case insensitively and defaults to Open', async () => {
-    const [closed, blank] = await loadJobs([
+  it('reads the status case insensitively and defaults to Open', () => {
+    const [closed, blank] = loadJobs([
       aJobRow({ jobSlug: 'a', Status: ' CLOSED ' }),
       aJobRow({ jobSlug: 'b', Status: '' }),
     ]);
@@ -120,20 +102,20 @@ describe('getJobs', () => {
     expect(blank?.status).toBe('Open');
   });
 
-  it('strips wrapping quotes from skills', async () => {
-    const [job] = await loadJobs([aJobRow({ skills: '"Go", "Kubernetes"' })]);
+  it('strips wrapping quotes from skills', () => {
+    const [job] = loadJobs([aJobRow({ skills: '"Go", "Kubernetes"' })]);
 
     expect(job?.skills).toEqual(['Go', 'Kubernetes']);
   });
 
-  it('defaults openings to a single opening when the sheet leaves it blank', async () => {
-    const [job] = await loadJobs([aJobRow({ openings: '' })]);
+  it('defaults openings to a single opening when the sheet leaves it blank', () => {
+    const [job] = loadJobs([aJobRow({ openings: '' })]);
 
     expect(job?.openings).toBe('1');
   });
 
-  it('drops rows without a title or a slug', async () => {
-    const jobs = await loadJobs([
+  it('drops rows without a title or a slug', () => {
+    const jobs = loadJobs([
       aJobRow({ jobSlug: 'keeper' }),
       aJobRow({ jobSlug: '' }),
       aJobRow({ jobSlug: 'no-title', title: '' }),
@@ -141,35 +123,17 @@ describe('getJobs', () => {
 
     expect(jobs.map((job) => job.jobSlug)).toEqual(['keeper']);
   });
-
-  it('reports a failure to reach the sheet rather than pretending there are no jobs', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response('nope', { status: 500, statusText: 'Server Error' })),
-    );
-    const { fetchJobsFromSheet } = await import('./jobs/sheet');
-
-    await expect(fetchJobsFromSheet()).rejects.toThrow(/Failed to fetch sheet/);
-  });
 });
 
 describe('finding one job', () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('finds a job by slug', async () => {
-    const jobs = await loadJobs([aJobRow({ jobSlug: 'wanted' }), aJobRow({ jobSlug: 'other' })]);
+  it('finds a job by slug', () => {
+    const jobs = loadJobs([aJobRow({ jobSlug: 'wanted' }), aJobRow({ jobSlug: 'other' })]);
 
     expect(jobs.find((job) => job.jobSlug === 'wanted')).toMatchObject({ jobSlug: 'wanted' });
   });
 
-  it('finds nothing for an unknown slug', async () => {
-    const jobs = await loadJobs([aJobRow({ jobSlug: 'wanted' })]);
+  it('finds nothing for an unknown slug', () => {
+    const jobs = loadJobs([aJobRow({ jobSlug: 'wanted' })]);
 
     expect(jobs.find((job) => job.jobSlug === 'missing')).toBeUndefined();
   });

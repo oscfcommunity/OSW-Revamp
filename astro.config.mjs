@@ -83,7 +83,7 @@ export default defineConfig({
     },
   },
 
-    security: {
+  security: {
     // Astro only trusts Host and X-Forwarded-* headers for domains listed here.
     // Without this it falls back to http://localhost:<port>, so every form POST
     // from the real site looks cross-origin and is rejected by the CSRF check —

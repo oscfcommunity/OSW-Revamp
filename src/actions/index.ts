@@ -5,7 +5,9 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { auditLog } from '../db/schema/content';
 import { user } from '../db/schema/auth';
-import { AuthorizationError, requireRole, type Viewer } from '../lib/guards';
+import { profile } from '../db/schema/community';
+import { AuthorizationError, requireRole, requireUser, type Viewer } from '../lib/guards';
+import { parseSkills, profileUrl } from '../lib/profile';
 import { forum } from './forum';
 
 const asActionError = (error: unknown): never => {
@@ -55,8 +57,69 @@ const record = async (
  * Events and jobs are edited in Strapi, so there are no content mutations here.
  * What remains is membership: roles, suspensions and the forum.
  */
+/**
+ * A form always posts strings, and Astro represents an absent field as null.
+ * Both become undefined so an untouched optional input is not a type error.
+ */
+const blank = (value: unknown): unknown => (value === null || value === '' ? undefined : value);
+
 export const server = {
   forum,
+
+  account: {
+    saveProfile: defineAction({
+      accept: 'form',
+      input: z.object({
+        name: z.string().trim().min(1, 'Your name cannot be empty').max(80),
+        bio: z.preprocess(blank, z.string().trim().max(500).optional()),
+        location: z.preprocess(blank, z.string().trim().max(80).optional()),
+        pronouns: z.preprocess(blank, z.string().trim().max(40).optional()),
+        websiteUrl: z.preprocess(blank, z.string().trim().max(200).optional()),
+        githubUrl: z.preprocess(blank, z.string().trim().max(200).optional()),
+        twitterUrl: z.preprocess(blank, z.string().trim().max(200).optional()),
+        linkedinUrl: z.preprocess(blank, z.string().trim().max(200).optional()),
+        skills: z.preprocess(blank, z.string().trim().max(500).optional()),
+        isPublic: z.coerce.boolean().default(false),
+        openToWork: z.coerce.boolean().default(false),
+      }),
+      handler: async (input, context) => {
+        let viewer: Viewer;
+        try {
+          viewer = requireUser(context.locals.viewer);
+        } catch (error) {
+          return asActionError(error);
+        }
+
+        const values = {
+          bio: input.bio ?? null,
+          location: input.location ?? null,
+          pronouns: input.pronouns ?? null,
+          websiteUrl: profileUrl(input.websiteUrl),
+          githubUrl: profileUrl(input.githubUrl),
+          twitterUrl: profileUrl(input.twitterUrl),
+          linkedinUrl: profileUrl(input.linkedinUrl),
+          skills: parseSkills(input.skills),
+          isPublic: input.isPublic,
+          openToWork: input.openToWork,
+          updatedAt: new Date(),
+        };
+
+        await db
+          .update(user)
+          .set({ name: input.name, updatedAt: new Date() })
+          .where(eq(user.id, viewer.id));
+
+        // The profile row is created on first save rather than at sign up, so
+        // this has to upsert.
+        await db
+          .insert(profile)
+          .values({ userId: viewer.id, ...values })
+          .onConflictDoUpdate({ target: profile.userId, set: values });
+
+        return { saved: true };
+      },
+    }),
+  },
 
   moderation: {
     setUserRole: defineAction({

@@ -1,0 +1,197 @@
+---
+import { actions } from 'astro:actions';
+import { eq } from 'drizzle-orm';
+
+import Layout from '../../layouts/Layout.astro';
+import Field from '../../components/admin/Field.astro';
+import { db } from '../../db';
+import { account } from '../../db/schema/auth';
+import { profile } from '../../db/schema/community';
+import { Github, LayoutDashboard, LogOut } from 'lucide-astro';
+import { canModerate } from '../../lib/guards';
+
+const { user, viewer } = Astro.locals;
+
+// Middleware already redirects anonymous visitors; this keeps the types honest.
+if (!user || !viewer) {
+  return Astro.redirect('/login?next=/settings');
+}
+
+const result = Astro.getActionResult(actions.account.saveProfile);
+
+const [row] = await db.select().from(profile).where(eq(profile.userId, viewer.id)).limit(1);
+
+const linked = await db
+  .select({ providerId: account.providerId, createdAt: account.createdAt })
+  .from(account)
+  .where(eq(account.userId, viewer.id));
+
+const providerName: Record<string, string> = {
+  google: 'Google',
+  github: 'GitHub',
+  credential: 'Email and password',
+};
+
+const saved = result !== undefined && !result.error;
+---
+
+<Layout title="Your profile | Open Source Weekend" description="Manage your account and profile.">
+  <div class="mx-auto max-w-2xl space-y-8 px-4 py-12">
+    <header class="flex items-center gap-4">
+      {
+        user.image ? (
+          <img src={user.image} alt="" class="size-16 rounded-full object-cover" />
+        ) : (
+          <span class="bg-primary/10 text-primary flex size-16 items-center justify-center rounded-full text-2xl font-bold">
+            {(user.name || user.email).charAt(0).toUpperCase()}
+          </span>
+        )
+      }
+      <div class="min-w-0">
+        <h1 class="truncate font-['Outfit'] text-3xl font-extrabold tracking-tight">
+          {user.name || user.email}
+        </h1>
+        <p class="text-muted-foreground truncate text-sm">{user.email}</p>
+      </div>
+    </header>
+
+    <section class="bg-card border-border grid grid-cols-3 gap-4 rounded-xl border p-5 text-center">
+      <div>
+        <p class="font-['Outfit'] text-2xl font-extrabold">{viewer.role}</p>
+        <p class="text-muted-foreground text-xs">Role</p>
+      </div>
+      <div>
+        <p class="font-['Outfit'] text-2xl font-extrabold">{user.reputation ?? 0}</p>
+        <p class="text-muted-foreground text-xs">Reputation</p>
+      </div>
+      <div>
+        <p class="font-['Outfit'] text-2xl font-extrabold">
+          {
+            new Date(user.createdAt).toLocaleDateString('en-GB', {
+              month: 'short',
+              year: 'numeric',
+            })
+          }
+        </p>
+        <p class="text-muted-foreground text-xs">Member since</p>
+      </div>
+    </section>
+
+    {
+      saved && (
+        <p class="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">
+          Profile saved.
+        </p>
+      )
+    }
+    {
+      result?.error && (
+        <p class="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm">
+          {result.error.message}
+        </p>
+      )
+    }
+
+    <form method="POST" action={actions.account.saveProfile} class="space-y-8">
+      <section class="bg-card border-border space-y-5 rounded-xl border p-6">
+        <h2 class="font-bold">About you</h2>
+        <Field label="Display name" name="name" required value={user.name} />
+        <Field
+          label="Bio"
+          name="bio"
+          type="textarea"
+          rows={4}
+          value={row?.bio}
+          hint="A sentence or two. Shown on your public profile."
+        />
+        <div class="grid gap-5 sm:grid-cols-2">
+          <Field label="Location" name="location" value={row?.location} placeholder="Ahmedabad" />
+          <Field label="Pronouns" name="pronouns" value={row?.pronouns} placeholder="they/them" />
+        </div>
+        <Field
+          label="Skills"
+          name="skills"
+          value={row?.skills?.join(', ')}
+          hint="Comma separated, up to 20."
+          placeholder="TypeScript, Postgres, Rust"
+        />
+      </section>
+
+      <section class="bg-card border-border space-y-5 rounded-xl border p-6">
+        <h2 class="font-bold">Links</h2>
+        <p class="text-muted-foreground -mt-3 text-xs">
+          A bare domain is fine — <code>github.com/you</code> becomes a full link.
+        </p>
+        <Field label="Website" name="websiteUrl" value={row?.websiteUrl} />
+        <Field label="GitHub" name="githubUrl" value={row?.githubUrl} />
+        <Field label="X / Twitter" name="twitterUrl" value={row?.twitterUrl} />
+        <Field label="LinkedIn" name="linkedinUrl" value={row?.linkedinUrl} />
+      </section>
+
+      <section class="bg-card border-border space-y-4 rounded-xl border p-6">
+        <h2 class="font-bold">Visibility</h2>
+        <Field
+          label="Show my profile to other members"
+          name="isPublic"
+          type="checkbox"
+          value={row?.isPublic ?? true}
+        />
+        <Field
+          label="I am open to work"
+          name="openToWork"
+          type="checkbox"
+          value={row?.openToWork ?? false}
+        />
+      </section>
+
+      <button
+        type="submit"
+        class="bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-lg px-6 text-sm font-bold"
+      >
+        Save profile
+      </button>
+    </form>
+
+    <section class="bg-card border-border space-y-4 rounded-xl border p-6">
+      <h2 class="font-bold">Sign in methods</h2>
+      <ul class="space-y-2 text-sm">
+        {
+          linked.map((entry) => (
+            <li class="flex items-center gap-2">
+              {entry.providerId === 'github' && <Github class="size-4" />}
+              <span>{providerName[entry.providerId] ?? entry.providerId}</span>
+              <span class="text-muted-foreground text-xs">
+                linked {entry.createdAt.toLocaleDateString('en-GB')}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="text-muted-foreground text-xs">
+        Signing in with another provider that uses this same verified email address adds it here,
+        rather than creating a second account.
+      </p>
+    </section>
+
+    <div class="flex flex-wrap items-center gap-4">
+      {
+        canModerate(viewer) && (
+          <a
+            href="/admin"
+            class="border-border hover:bg-accent inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold"
+          >
+            <LayoutDashboard class="size-4" /> Admin
+          </a>
+        )
+      }
+      <form method="POST" action="/logout">
+        <button
+          type="submit"
+          class="border-border hover:text-destructive inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold"
+        >
+          <LogOut class="size-4" /> Sign out
+        </button>
+      </form>
+    </div>
+  </div>
+</Layout>

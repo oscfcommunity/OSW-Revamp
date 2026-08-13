@@ -83,6 +83,18 @@ export default defineConfig({
     },
   },
 
+    security: {
+    // Astro only trusts Host and X-Forwarded-* headers for domains listed here.
+    // Without this it falls back to http://localhost:<port>, so every form POST
+    // from the real site looks cross-origin and is rejected by the CSRF check —
+    // which is what broke sign out in production. Declaring the domain is the
+    // fix; turning off checkOrigin would remove the protection instead.
+    allowedDomains: [
+      { hostname: 'opensourceweekend.org', protocol: 'https' },
+      { hostname: 'www.opensourceweekend.org', protocol: 'https' },
+    ],
+  },
+
   integrations: [sitemap()],
   output: 'server',
   adapter: node({

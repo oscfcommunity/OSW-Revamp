@@ -1,0 +1,191 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SkillTag from '../../components/ui/SkillTag.astro';
+import { db } from '../../db';
+import { getPublicProfile, listRepliesByAuthor, listThreadsByAuthor } from '../../lib/profile/repo';
+import { profileDescription } from '../../lib/profile/visibility';
+import { canModerate } from '../../lib/guards';
+import { Github, Globe, Linkedin, MapPin, MessageSquare, Twitter } from 'lucide-astro';
+
+const { username } = Astro.params;
+const person = username ? await getPublicProfile(db, username) : undefined;
+
+if (!person) {
+  return Astro.rewrite('/404');
+}
+
+const viewer = Astro.locals.viewer;
+const isSelf = viewer?.id === person.userId;
+// A hidden profile stays visible to its owner and to moderators, so people can
+// check how theirs looks and moderators can still act on a report.
+const canSee = person.isPublic || isSelf || canModerate(viewer);
+
+const [threads, replies] = canSee
+  ? await Promise.all([
+      listThreadsByAuthor(db, person.userId),
+      listRepliesByAuthor(db, person.userId),
+    ])
+  : [[], []];
+
+const links = [
+  { href: person.websiteUrl, label: 'Website', icon: Globe },
+  { href: person.githubUrl, label: 'GitHub', icon: Github },
+  { href: person.twitterUrl, label: 'X', icon: Twitter },
+  { href: person.linkedinUrl, label: 'LinkedIn', icon: Linkedin },
+].filter((link): link is { href: string; label: string; icon: typeof Globe } => Boolean(link.href));
+
+const memberSince = person.createdAt.toLocaleDateString('en-GB', {
+  month: 'long',
+  year: 'numeric',
+});
+
+const describe = profileDescription({ name: person.name, bio: person.bio, canSee });
+---
+
+<Layout title={`${person.name} | Open Source Weekend`} description={describe}>
+  <div class="mx-auto max-w-3xl space-y-8 px-4 py-12">
+    <header class="flex flex-wrap items-start gap-5">
+      {
+        person.image ? (
+          <img src={person.image} alt="" class="size-20 rounded-full object-cover" />
+        ) : (
+          <span class="bg-primary/10 text-primary flex size-20 items-center justify-center rounded-full text-3xl font-bold">
+            {person.name.charAt(0).toUpperCase()}
+          </span>
+        )
+      }
+
+      <div class="min-w-0 flex-1">
+        <h1 class="font-['Outfit'] text-3xl font-extrabold tracking-tight">{person.name}</h1>
+        <p class="text-muted-foreground mt-1 text-sm">
+          @{person.username}
+          {person.pronouns && <span> · {person.pronouns}</span>}
+          {
+            person.role !== 'user' && (
+              <span class="bg-primary/10 text-primary ml-2 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                {person.role}
+              </span>
+            )
+          }
+        </p>
+        <p class="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          {
+            person.location && (
+              <span class="inline-flex items-center gap-1">
+                <MapPin class="size-3.5" /> {person.location}
+              </span>
+            )
+          }
+          <span>Member since {memberSince}</span>
+          <span>{person.reputation} reputation</span>
+        </p>
+      </div>
+
+      {
+        isSelf && (
+          <a
+            href="/settings"
+            class="border-border hover:bg-accent inline-flex h-9 items-center rounded-lg border px-3 text-sm font-semibold"
+          >
+            Edit profile
+          </a>
+        )
+      }
+    </header>
+
+    {
+      !canSee ? (
+        <p class="border-border text-muted-foreground rounded-xl border border-dashed p-10 text-center">
+          This member keeps their profile private.
+        </p>
+      ) : (
+        <>
+          {person.openToWork && (
+            <p class="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-700 dark:text-green-400">
+              Open to work
+            </p>
+          )}
+
+          {person.bio && (
+            <section class="bg-card border-border rounded-xl border p-6">
+              <p class="leading-relaxed whitespace-pre-line">{person.bio}</p>
+            </section>
+          )}
+
+          {person.skills.length > 0 && (
+            <section>
+              <h2 class="text-muted-foreground mb-3 text-xs font-bold tracking-widest uppercase">
+                Skills
+              </h2>
+              <div class="flex flex-wrap gap-2.5">
+                {person.skills.map((skill) => (
+                  <SkillTag skill={skill} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {links.length > 0 && (
+            <section class="flex flex-wrap gap-4">
+              {links.map((link) => (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="me noopener noreferrer"
+                  class="text-muted-foreground hover:text-primary inline-flex items-center gap-1.5 text-sm"
+                >
+                  <link.icon class="size-4" /> {link.label}
+                </a>
+              ))}
+            </section>
+          )}
+
+          <section>
+            <h2 class="mb-3 font-['Outfit'] text-xl font-bold">Threads</h2>
+            {threads.length === 0 ? (
+              <p class="text-muted-foreground text-sm">No threads yet.</p>
+            ) : (
+              <ul class="bg-card border-border divide-border/60 divide-y rounded-xl border">
+                {threads.map((thread) => (
+                  <li class="flex items-center justify-between gap-4 px-4 py-3">
+                    <a
+                      href={`/forum/c/${thread.categorySlug}/${thread.slug}`}
+                      class="hover:text-primary min-w-0 flex-1 truncate text-sm font-medium"
+                    >
+                      {thread.title}
+                    </a>
+                    <span class="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
+                      <MessageSquare class="size-3.5" />
+                      {thread.replyCount}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {replies.length > 0 && (
+            <section>
+              <h2 class="mb-3 font-['Outfit'] text-xl font-bold">Recent replies</h2>
+              <ul class="bg-card border-border divide-border/60 divide-y rounded-xl border">
+                {replies.map((reply) => (
+                  <li class="px-4 py-3">
+                    <a
+                      href={`/forum/c/${reply.categorySlug}/${reply.threadSlug}#post-${reply.postId}`}
+                      class="hover:text-primary block truncate text-sm"
+                    >
+                      {reply.threadTitle}
+                    </a>
+                    <span class="text-muted-foreground text-xs">
+                      {reply.createdAt.toLocaleDateString('en-GB')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )
+    }
+  </div>
+</Layout>

@@ -9,6 +9,7 @@ import { account } from '../../db/schema/auth';
 import { profile } from '../../db/schema/community';
 import { Github, LayoutDashboard, LogOut } from 'lucide-astro';
 import { canModerate } from '../../lib/guards';
+import { suggestUsername } from '../../lib/username';
 
 const { user, viewer } = Astro.locals;
 
@@ -33,6 +34,10 @@ const providerName: Record<string, string> = {
 };
 
 const saved = result !== undefined && !result.error;
+
+// Members created before usernames existed have none, so offer one derived from
+// what we already know rather than presenting an empty required field.
+const username = user.username ?? suggestUsername(user.name ?? '', user.email);
 ---
 
 <Layout title="Your profile | Open Source Weekend" description="Manage your account and profile.">
@@ -52,6 +57,13 @@ const saved = result !== undefined && !result.error;
           {user.name || user.email}
         </h1>
         <p class="text-muted-foreground truncate text-sm">{user.email}</p>
+        {
+          user.username && (
+            <a href={`/u/${user.username}`} class="text-primary text-sm font-semibold">
+              View public profile →
+            </a>
+          )
+        }
       </div>
     </header>
 
@@ -96,6 +108,13 @@ const saved = result !== undefined && !result.error;
       <section class="bg-card border-border space-y-5 rounded-xl border p-6">
         <h2 class="font-bold">About you</h2>
         <Field label="Display name" name="name" required value={user.name} />
+        <Field
+          label="Username"
+          name="username"
+          required
+          value={username}
+          hint={`Your public profile lives at /u/${username}`}
+        />
         <Field
           label="Bio"
           name="bio"

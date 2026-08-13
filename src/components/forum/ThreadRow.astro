@@ -13,6 +13,7 @@ interface Props {
     categorySlug: string;
     categoryName: string;
     authorName: string | null;
+    authorUsername?: string | null;
   };
   showCategory?: boolean;
 }
@@ -64,7 +65,15 @@ const relative = (date: Date): string => {
           </>
         )
       }
-      {thread.authorName ?? 'Deleted member'} · {relative(thread.lastPostAt)} · {thread.viewCount} views
+      {
+        thread.authorUsername ? (
+          <a href={`/u/${thread.authorUsername}`} class="hover:text-primary font-medium">
+            {thread.authorName}
+          </a>
+        ) : (
+          (thread.authorName ?? 'Deleted member')
+        )
+      } · {relative(thread.lastPostAt)} · {thread.viewCount} views
     </p>
   </div>
 

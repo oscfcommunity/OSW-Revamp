@@ -8,6 +8,8 @@ import { user } from '../db/schema/auth';
 import { profile } from '../db/schema/community';
 import { AuthorizationError, requireRole, requireUser, type Viewer } from '../lib/guards';
 import { parseSkills, profileUrl } from '../lib/profile';
+import { validateUsername } from '../lib/username';
+import { isUniqueViolation } from '../lib/db-errors';
 import { forum } from './forum';
 
 const asActionError = (error: unknown): never => {
@@ -71,6 +73,7 @@ export const server = {
       accept: 'form',
       input: z.object({
         name: z.string().trim().min(1, 'Your name cannot be empty').max(80),
+        username: z.string().trim().min(1, 'Pick a username').max(30),
         bio: z.preprocess(blank, z.string().trim().max(500).optional()),
         location: z.preprocess(blank, z.string().trim().max(80).optional()),
         pronouns: z.preprocess(blank, z.string().trim().max(40).optional()),
@@ -104,10 +107,24 @@ export const server = {
           updatedAt: new Date(),
         };
 
-        await db
-          .update(user)
-          .set({ name: input.name, updatedAt: new Date() })
-          .where(eq(user.id, viewer.id));
+        const username = validateUsername(input.username);
+        if (!username.ok) {
+          throw new ActionError({ code: 'BAD_REQUEST', message: username.reason });
+        }
+
+        try {
+          await db
+            .update(user)
+            .set({ name: input.name, username: username.username, updatedAt: new Date() })
+            .where(eq(user.id, viewer.id));
+        } catch (error) {
+          // The unique index is the authority on availability; checking first
+          // would still race with another member saving the same name.
+          if (isUniqueViolation(error)) {
+            throw new ActionError({ code: 'CONFLICT', message: 'That username is already taken.' });
+          }
+          throw error;
+        }
 
         // The profile row is created on first save rather than at sign up, so
         // this has to upsert.
@@ -116,7 +133,7 @@ export const server = {
           .values({ userId: viewer.id, ...values })
           .onConflictDoUpdate({ target: profile.userId, set: values });
 
-        return { saved: true };
+        return { saved: true, username: username.username };
       },
     }),
   },

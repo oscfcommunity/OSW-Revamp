@@ -17,6 +17,7 @@ import { user } from '../src/db/schema/auth';
 import { profile } from '../src/db/schema/community';
 import { forumPost, forumThread } from '../src/db/schema/forum';
 import { ensureCategories, getCategory } from '../src/lib/forum/repo';
+import { claimUsername } from '../src/lib/username-claim';
 import { castVote, createReply, createThread } from '../src/lib/forum/write';
 
 const FORCE = process.argv.includes('--force');
@@ -243,6 +244,8 @@ const run = async (): Promise<void> => {
         location: 'Ahmedabad',
       });
     }
+
+    await claimUsername(db, { id, name: member.name, email: member.email });
 
     ids.set(member.key, id);
     console.log(`member: ${member.name} <${member.email}> (${member.role})`);

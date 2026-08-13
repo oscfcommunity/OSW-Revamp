@@ -3,6 +3,8 @@ import { ADMIN_EMAILS } from 'astro:env/server';
 
 import { auth } from './lib/auth';
 import { promoteToAdmin, shouldPromoteToAdmin } from './lib/bootstrap-admin';
+import { db } from './db';
+import { claimUsername } from './lib/username-claim';
 import { canModerate, type Role, type Viewer } from './lib/guards';
 
 const AUTHORING_PREFIXES = ['/forum/new', '/settings', '/submit', '/profile/edit'] as const;
@@ -35,7 +37,19 @@ const withSession = defineMiddleware(async (context, next) => {
     viewer = { ...viewer, role: 'admin' };
   }
 
-  context.locals.user = { ...data.user, role: viewer.role };
+  // Every member gets a public address on first sign in, so profiles are
+  // reachable without anyone having to visit their settings first. Only runs
+  // when they have none, so a chosen username is never overwritten.
+  let username = typeof data.user.username === 'string' ? data.user.username : null;
+  if (!username) {
+    username = await claimUsername(db, {
+      id: viewer.id,
+      name: data.user.name ?? null,
+      email: data.user.email,
+    });
+  }
+
+  context.locals.user = { ...data.user, role: viewer.role, username };
   context.locals.session = data.session;
   context.locals.viewer = viewer;
 

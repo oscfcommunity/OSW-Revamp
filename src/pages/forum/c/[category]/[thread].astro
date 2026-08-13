@@ -133,7 +133,13 @@ const formatDate = (date: Date): string =>
                 )}
                 <div>
                   <p class="text-sm font-semibold">
-                    {post.authorName ?? 'Deleted member'}
+                    {post.authorUsername ? (
+                      <a href={`/u/${post.authorUsername}`} class="hover:text-primary">
+                        {post.authorName}
+                      </a>
+                    ) : (
+                      (post.authorName ?? 'Deleted member')
+                    )}
                     {post.authorRole && post.authorRole !== 'user' && (
                       <span class="bg-primary/10 text-primary ml-2 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase">
                         {post.authorRole}

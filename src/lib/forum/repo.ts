@@ -96,6 +96,7 @@ const threadListSelect = {
   categorySlug: forumCategory.slug,
   categoryName: forumCategory.name,
   authorName: user.name,
+  authorUsername: user.username,
   authorImage: user.image,
 } as const;
 
@@ -178,6 +179,7 @@ export const listPosts = async (
         editedAt: forumPost.editedAt,
         authorId: forumPost.authorId,
         authorName: user.name,
+        authorUsername: user.username,
         authorImage: user.image,
         authorRole: user.role,
         authorReputation: user.reputation,

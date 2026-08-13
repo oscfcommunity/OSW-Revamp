@@ -3,4 +3,6 @@
  */
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreRouter('api::company.company');
+type ContentTypeUID = Parameters<typeof factories.createCoreRouter>[0];
+
+export default factories.createCoreRouter('api::company.company' as ContentTypeUID);

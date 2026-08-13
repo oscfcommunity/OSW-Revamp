@@ -46,23 +46,55 @@ interface Report {
   skipped: string[];
 }
 
-const api = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
-  const response = await fetch(`${STRAPI_URL}/api/${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      Authorization: `Bearer ${STRAPI_TOKEN}`,
-      ...init.headers,
-    },
-  });
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-  if (!response.ok) {
+/** Transient: the origin or the proxy in front of it was briefly unhappy. */
+const isRetryable = (status: number): boolean => status === 429 || status >= 500;
+
+const MAX_ATTEMPTS = 4;
+
+const api = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
+  let lastError = '';
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    let response: Response;
+    try {
+      response = await fetch(`${STRAPI_URL}/api/${path}`, {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${STRAPI_TOKEN}`,
+          ...init.headers,
+        },
+      });
+    } catch (error) {
+      // A dropped connection is worth another go.
+      lastError = (error as Error).message;
+      if (attempt === MAX_ATTEMPTS) break;
+      await sleep(attempt * 1000);
+      continue;
+    }
+
+    if (response.ok) {
+      return (await response.json()) as T;
+    }
+
     const body = await response.text();
-    throw new Error(`${init.method ?? 'GET'} ${path} → ${response.status}: ${body.slice(0, 300)}`);
+    lastError = `${response.status}: ${body.slice(0, 200)}`;
+
+    if (!isRetryable(response.status) || attempt === MAX_ATTEMPTS) {
+      throw new Error(`${init.method ?? 'GET'} ${path} → ${lastError}`);
+    }
+
+    // Hundreds of sequential writes can briefly overwhelm the origin; back off
+    // rather than dropping the entry.
+    await sleep(attempt * 1500);
   }
 
-  return (await response.json()) as T;
+  throw new Error(
+    `${init.method ?? 'GET'} ${path} → gave up after ${MAX_ATTEMPTS} attempts: ${lastError}`,
+  );
 };
 
 type Entry = { id: number; documentId: string };
